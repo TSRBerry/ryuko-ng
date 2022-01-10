@@ -24,7 +24,9 @@ class RyujinxVerification(Cog):
         join_channel = self.bot.get_channel(config.welcome_channel)
 
         if join_channel is not None:
-            await join_channel.send('Hello {0.mention}! Welcome to Ryujinx! Please read the <#411271165429022730>, and then type the verifying command here to gain access to the rest of the channels.\n\nIf you need help with basic common questions, visit the <#585288848704143371> channel after joining.\n\nIf you need help with Animal Crossing visit the <#692104087889641472> channel for common issues and solutions. If you need help that is not Animal Crossing related, please visit the <#410208610455519243> channel after verifying.'.format(member))
+            await join_channel.send(
+                'Hello {0.mention}! Welcome to Ryujinx! Please read the <#411271165429022730>, and then type the verifying command here to gain access to the rest of the channels.\n\nIf you need help with basic common questions, visit the <#585288848704143371> channel after joining.\n\nIf you need help with Animal Crossing visit the <#692104087889641472> channel for common issues and solutions. If you need help that is not Animal Crossing related, please visit the <#410208610455519243> channel after verifying.'.format(
+                    member))
 
     async def process_message(self, message):
         """Process the verification process"""
@@ -90,5 +92,6 @@ class RyujinxVerification(Cog):
         # We only auto clear the channel daily
         await self.do_reset(channel, author)
 
-def setup(bot):
-    bot.add_cog(RyujinxVerification(bot))
+
+async def setup(bot):
+    await bot.add_cog(RyujinxVerification(bot))
