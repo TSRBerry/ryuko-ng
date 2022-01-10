@@ -3,7 +3,7 @@ import re
 
 import aiohttp
 import config
-import discord
+from discord import Colour, Embed
 from discord.ext.commands import Cog
 
 logging.basicConfig(
@@ -15,14 +15,14 @@ logging.basicConfig(
 class LogFileReader(Cog):
     def __init__(self, bot):
         self.bot = bot
-        # Allows log analysis in #support and #patreon-support channels respectively
         self.bot_log_allowed_channels = config.bot_log_allowed_channels
-        self.uploaded_log_filenames = []
+        self.ryujinx_blue = Colour(0x4A90E2)
+        self.uploaded_log_info = []
 
     async def download_file(self, log_url):
         async with aiohttp.ClientSession() as session:
             # Grabs first and last few bytes of log file to prevent abuse from large files
-            headers = {"Range": "bytes=0-25000, -6000"}
+            headers = {"Range": "bytes=0-35000, -6000"}
             async with session.get(log_url, headers=headers) as response:
                 return await response.text("UTF-8")
 
@@ -48,7 +48,9 @@ class LogFileReader(Cog):
             "settings": {
                 "audio_backend": "Unknown",
                 "docked": "Unknown",
+                "expand_ram": "Unknown",
                 "ignore_missing_services": "Unknown",
+                "memory_manager": "Unknown",
                 "pptc": "Unknown",
                 "shader_cache": "Unknown",
                 "vsync": "Unknown",
@@ -172,9 +174,7 @@ class LogFileReader(Cog):
                 )
             )
 
-            log_embed = discord.Embed(
-                title=f"{cleaned_game_name}", colour=discord.Colour(0x4A90E2)
-            )
+            log_embed = Embed(title=f"{cleaned_game_name}", colour=self.ryujinx_blue)
             log_embed.set_footer(text=f"Log uploaded by {author_name}")
             log_embed.add_field(
                 name="General Info",
@@ -191,10 +191,13 @@ class LogFileReader(Cog):
                 value=graphics_settings_info,
                 inline=True,
             )
-            if cleaned_game_name == "Unknown":
+            if (
+                cleaned_game_name == "Unknown"
+                and self.embed["game_info"]["errors"] == "No errors found in log"
+            ):
                 log_embed.add_field(
                     name="Empty Log",
-                    value=f"""This log file appears to be empty. To get a proper log, follow these steps:
+                    value=f"""The log file appears to be empty. To get a proper log, follow these steps:
                                 1) In Logging settings, ensure `Enable Logging to File` is checked.
                                 2) Ensure the following default logs are enabled: `Info`, `Warning`, `Error`, `Guest` and `Stub`.
                                 3) Start a game up.
@@ -202,9 +205,23 @@ class LogFileReader(Cog):
                                 5) Upload the latest log file.""",
                     inline=False,
                 )
+            if (
+                cleaned_game_name == "Unknown"
+                and self.embed["game_info"]["errors"] != "No errors found in log"
+            ):
                 log_embed.add_field(
                     name="Latest Error Snippet",
                     value=self.embed["game_info"]["errors"],
+                    inline=False,
+                )
+                log_embed.add_field(
+                    name="No Game Boot Detected",
+                    value=f"""No game boot has been detected in log file. To get a proper log, follow these steps:
+                                1) In Logging settings, ensure `Enable Logging to File` is checked.
+                                2) Ensure the following default logs are enabled: `Info`, `Warning`, `Error`, `Guest` and `Stub`.
+                                3) Start a game up.
+                                4) Play until your issue occurs.
+                                5) Upload the latest log file.""",
                     inline=False,
                 )
             else:
@@ -276,7 +293,6 @@ class LogFileReader(Cog):
                                 }
                                 setting[name] = aspect_map[setting_value]
                             if name in [
-                                "ignore_missing_services",
                                 "pptc",
                                 "shader_cache",
                                 "vsync",
@@ -291,7 +307,9 @@ class LogFileReader(Cog):
                         "aspect_ratio": "AspectRatio",
                         "audio_backend": "AudioBackend",
                         "docked": "EnableDockedMode",
+                        "expand_ram": "ExpandRam",
                         "ignore_missing_services": "IgnoreMissingServices",
+                        "memory_manager": "MemoryManagerMode",
                         "pptc": "EnablePtc",
                         "resolution_scale": "ResScale",
                         "shader_cache": "EnableShaderCache",
@@ -306,16 +324,6 @@ class LogFileReader(Cog):
                             f"Settings exception: {setting_name}: {type(error).__name__}"
                         )
                         continue
-                # Game name parsed last so that user settings are visible with empty log
-                self.embed["game_info"]["game_name"] = (
-                    re.search(
-                        r"Loader LoadNca: Application Loaded:\s([^;\n\r]*)",
-                        log_file,
-                        re.MULTILINE,
-                    )
-                    .group(1)
-                    .rstrip()
-                )
 
                 def analyse_error_message(log_file=log_file):
                     try:
@@ -340,14 +348,20 @@ class LogFileReader(Cog):
                             return False
 
                         shader_cache_collision = error_search(["Cache collision found"])
-                        dump_hash_warning = error_search(["ResultFsInvalidIvfcHash"])
-                        shader_cache_corruption = error_search(
+                        dump_hash_warning = error_search(
                             [
-                                """Object reference not set to an instance of an object.
-                                                                at Ryujinx.Graphics.Gpu.Shader.ShaderCache.Initialize()""",
-                                "System.IO.InvalidDataException: End of Central Directory record could not be found",
+                                "ResultFsInvalidIvfcHash",
+                                "ResultFsNonRealDataVerificationFailed",
                             ]
                         )
+                        shader_cache_corruption = error_search(
+                            [
+                                "Ryujinx.Graphics.Gpu.Shader.ShaderCache.Initialize()",
+                                "System.IO.InvalidDataException: End of Central Directory record could not be found",
+                                "ICSharpCode.SharpZipLib.Zip.ZipException: Cannot find central directory",
+                            ]
+                        )
+                        update_keys_error = error_search(["LibHac.MissingKeyException"])
                         last_errors = "\n".join(
                             errors[-1][:2] if "|E|" in errors[-1][0] else ""
                         )
@@ -358,6 +372,7 @@ class LogFileReader(Cog):
                         shader_cache_collision,
                         dump_hash_warning,
                         shader_cache_corruption,
+                        update_keys_error,
                     )
 
                 # Finds the lastest error denoted by |E| in the log and its first line
@@ -367,6 +382,7 @@ class LogFileReader(Cog):
                     shader_cache_warn,
                     dump_hash_warning,
                     shader_cache_corruption_warn,
+                    update_keys_error,
                 ) = analyse_error_message()
                 if last_error_snippet:
                     self.embed["game_info"]["errors"] = f"```{last_error_snippet}```"
@@ -400,6 +416,12 @@ class LogFileReader(Cog):
                     dump_hash_warning = f"⚠️ Dump error detected. Investigate possible bad game/firmware dump issues"
                     self.embed["game_info"]["notes"].append(dump_hash_warning)
 
+                if update_keys_error:
+                    update_keys_error = (
+                        f"⚠️ Keys or firmware out of date, consider updating them"
+                    )
+                    self.embed["game_info"]["notes"].append(update_keys_error)
+
                 timestamp_regex = re.compile(r"\d{2}:\d{2}:\d{2}\.\d{3}")
                 latest_timestamp = re.findall(timestamp_regex, log_file)[-1]
                 if latest_timestamp:
@@ -419,7 +441,6 @@ class LogFileReader(Cog):
                         ]
                         return mods_status
 
-                # Find information on installed mods
                 game_mods = mods_information()
                 if game_mods:
                     self.embed["game_info"]["mods"] = "\n".join(game_mods)
@@ -434,9 +455,14 @@ class LogFileReader(Cog):
                     # also maintains the list order
                     input_status = list(dict.fromkeys(input_status))
                     input_string = "\n".join(input_status)
-                else:
+                    self.embed["game_info"]["notes"].append(input_string)
+                # If emulator crashes on startup without game load, there is no need to show controller notification at all
+                if (
+                    not controllers
+                    and self.embed["game_info"]["game_name"] != "Unknown"
+                ):
                     input_string = "⚠️ No controller information found"
-                self.embed["game_info"]["notes"].append(input_string)
+                    self.embed["game_info"]["notes"].append(input_string)
 
                 try:
                     ram_available_regex = re.compile(r"Available\s(\d+)(?=\sMB)")
@@ -461,7 +487,6 @@ class LogFileReader(Cog):
                         intel_gpu_warning = "**⚠️ Intel iGPUs are known to have driver issues, consider using a discrete GPU**"
                         self.embed["game_info"]["notes"].append(intel_gpu_warning)
                 try:
-                    # Find information on logs, whether defaults are enabled or not
                     default_logs = ["Info", "Warning", "Error", "Guest", "Stub"]
                     user_logs = (
                         self.embed["emu_info"]["logs_enabled"]
@@ -469,6 +494,9 @@ class LogFileReader(Cog):
                         .replace(" ", "")
                         .split(",")
                     )
+                    if "Debug" in user_logs:
+                        debug_warning = f"⚠️ **Debug logs enabled will have a negative impact on performance**"
+                        self.embed["game_info"]["notes"].append(debug_warning)
                     disabled_logs = set(default_logs).difference(set(user_logs))
                     if disabled_logs:
                         logs_status = [
@@ -485,6 +513,12 @@ class LogFileReader(Cog):
                     firmware_warning = f"**❌ Nintendo Switch firmware not found**"
                     self.embed["game_info"]["notes"].append(firmware_warning)
 
+                if self.embed["settings"]["anisotropic_filtering"] != "Auto":
+                    anisotropic_filtering_warning = "⚠️ Anisotropic filtering not set to `Auto` can cause graphical issues"
+                    self.embed["game_info"]["notes"].append(
+                        anisotropic_filtering_warning
+                    )
+
                 if self.embed["settings"]["audio_backend"] == "Dummy":
                     dummy_warning = (
                         f"⚠️ Dummy audio backend, consider changing to SDL2 or OpenAL"
@@ -492,12 +526,32 @@ class LogFileReader(Cog):
                     self.embed["game_info"]["notes"].append(dummy_warning)
 
                 if self.embed["settings"]["pptc"] == "Disabled":
-                    pptc_warning = f"⚠️ PPTC cache should be enabled"
+                    pptc_warning = f"🔴 **PPTC cache should be enabled**"
                     self.embed["game_info"]["notes"].append(pptc_warning)
 
                 if self.embed["settings"]["shader_cache"] == "Disabled":
-                    shader_warning = f"⚠️ Shader cache should be enabled"
+                    shader_warning = f"🔴 **Shader cache should be enabled**"
                     self.embed["game_info"]["notes"].append(shader_warning)
+
+                if self.embed["settings"]["expand_ram"] == "True":
+                    expand_ram_warning = f"⚠️ `Expand DRAM size to 6GB` should only be enabled for 4K mods"
+                    self.embed["game_info"]["notes"].append(expand_ram_warning)
+
+                if self.embed["settings"]["memory_manager"] == "SoftwarePageTable":
+                    software_memory_manager_warning = "⚠️ `Software` setting in Memory Manager Mode will give slower performance than the default setting of `Host unchecked`"
+                    self.embed["game_info"]["notes"].append(
+                        software_memory_manager_warning
+                    )
+
+                if self.embed["settings"]["ignore_missing_services"] == "True":
+                    ignore_missing_services_warning = "⚠️ `Ignore Missing Services` being enabled can cause instability"
+                    self.embed["game_info"]["notes"].append(
+                        ignore_missing_services_warning
+                    )
+
+                if self.embed["settings"]["vsync"] == "Disabled":
+                    vsync_warning = f"⚠️ V-Sync disabled can cause instability like games running faster than intended or longer load times"
+                    self.embed["game_info"]["notes"].append(vsync_warning)
 
                 mainline_version = re.compile(r"^\d\.\d\.(\d){4}$")
                 pr_version = re.compile(r"^\d\.\d\.\d\+([a-f]|\d){7}$")
@@ -528,7 +582,7 @@ class LogFileReader(Cog):
                         self.embed["game_info"]["notes"].append(custom_firmware_warning)
 
                 def severity(log_note_string):
-                    symbols = ["❌", "⚠️", "ℹ", "✅"]
+                    symbols = ["❌", "🔴", "⚠️", "ℹ", "✅"]
                     return next(
                         i
                         for i, symbol in enumerate(symbols)
@@ -557,11 +611,13 @@ class LogFileReader(Cog):
         if message.author.bot:
             return
         try:
+            author_id = message.author.id
             author_mention = message.author.mention
             filename = message.attachments[0].filename
             # Any message over 2000 chars is uploaded as message.txt, so this is accounted for
             ryujinx_log_file_regex = re.compile(r"^Ryujinx_.*\.log|message\.txt$")
             log_file = re.compile(r"^.*\.log|.*\.txt$")
+            log_file_link = message.jump_url
             is_ryujinx_log_file = re.match(ryujinx_log_file_regex, filename)
             is_log_file = re.match(log_file, filename)
 
@@ -569,32 +625,58 @@ class LogFileReader(Cog):
                 message.channel.id in self.bot_log_allowed_channels.values()
                 and is_ryujinx_log_file
             ):
-                if filename not in self.uploaded_log_filenames:
+                uploaded_logs_exist = [
+                    True for elem in self.uploaded_log_info if filename in elem.values()
+                ]
+                if not any(uploaded_logs_exist):
                     reply_message = await message.channel.send(
                         "Log detected, parsing..."
                     )
                     try:
                         embed = await self.log_file_read(message)
                         if "Ryujinx_" in filename:
-                            self.uploaded_log_filenames.append(filename)
+                            self.uploaded_log_info.append(
+                                {
+                                    "filename": filename,
+                                    "link": log_file_link,
+                                    "author": author_id,
+                                }
+                            )
                             # Avoid duplicate log file analysis, at least temporarily; keep track of the last few filenames of uploaded logs
                             # this should help support channels not be flooded with too many log files
                             # fmt: off
-                            self.uploaded_log_filenames = self.uploaded_log_filenames[-5:]
+                            self.uploaded_log_info = self.uploaded_log_info[-5:]
                             # fmt: on
                         return await reply_message.edit(content=None, embed=embed)
                     except UnicodeDecodeError:
                         return await message.channel.send(
-                            f"This log file appears to be invalid {author_mention}. Please re-check and re-upload your log file."
+                            content=author_mention,
+                            embed=Embed(
+                                description=f"This log file appears to be invalid. Please re-check and re-upload your log file.",
+                                colour=self.ryujinx_blue,
+                            ),
                         )
                     except Exception as error:
                         await reply_message.edit(
-                            content=f"Error: Couldn't parse log; parser threw {type(error).__name__} exception."
+                            content=f"Error: Couldn't parse log; parser threw `{type(error).__name__}` exception."
                         )
                         print(logging.warn(error))
                 else:
+                    duplicate_log_file = next(
+                        (
+                            elem
+                            for elem in self.uploaded_log_info
+                            if elem["filename"] == filename
+                            and elem["author"] == author_id
+                        ),
+                        None,
+                    )
                     await message.channel.send(
-                        f"The log file `{filename}` appears to be a duplicate {author_mention}. Please upload a more recent file."
+                        content=author_mention,
+                        embed=Embed(
+                            description=f"The log file `{filename}` appears to be a duplicate [already uploaded here]({duplicate_log_file['link']}). Please upload a more recent file.",
+                            colour=self.ryujinx_blue,
+                        ),
                     )
             elif (
                 is_log_file
@@ -602,23 +684,31 @@ class LogFileReader(Cog):
                 and message.channel.id in self.bot_log_allowed_channels.values()
             ):
                 return await message.channel.send(
-                    f"{author_mention} Your file does not match the Ryujinx log format. Please check your file."
+                    content=author_mention,
+                    embed=Embed(
+                        description=f"Your file does not match the Ryujinx log format. Please check your file.",
+                        colour=self.ryujinx_blue,
+                    ),
                 )
             elif (
                 is_log_file
                 and not message.channel.id in self.bot_log_allowed_channels.values()
             ):
                 return await message.author.send(
-                    "\n".join(
-                        (
-                            f"{author_mention} Please upload Ryujinx log files to the correct location:\n",
-                            f'<#{config.bot_log_allowed_channels["support"]}>: General help and troubleshooting',
-                            f'<#{config.bot_log_allowed_channels["patreon-support"]}>: Help and troubleshooting for Patreon subscribers',
-                            f'<#{config.bot_log_allowed_channels["development"]}>: Ryujinx development discussion',
-                            f'<#{config.bot_log_allowed_channels["pr-testing"]}>: Discussion of in-progress pull request builds',
-                            f'<#{config.bot_log_allowed_channels["linux-master-race"]}>: Linux support and discussion',
-                        )
-                    )
+                    content=author_mention,
+                    embed=Embed(
+                        description="\n".join(
+                            (
+                                f"Please upload Ryujinx log files to the correct location:\n",
+                                f'<#{config.bot_log_allowed_channels["support"]}>: General help and troubleshooting',
+                                f'<#{config.bot_log_allowed_channels["patreon-support"]}>: Help and troubleshooting for Patreon subscribers',
+                                f'<#{config.bot_log_allowed_channels["development"]}>: Ryujinx development discussion',
+                                f'<#{config.bot_log_allowed_channels["pr-testing"]}>: Discussion of in-progress pull request builds',
+                                f'<#{config.bot_log_allowed_channels["linux-master-race"]}>: Linux support and discussion',
+                            )
+                        ),
+                        colour=self.ryujinx_blue,
+                    ),
                 )
         except IndexError:
             pass
