@@ -362,6 +362,11 @@ class LogFileReader(Cog):
                             ]
                         )
                         update_keys_error = error_search(["LibHac.MissingKeyException"])
+                        file_permissions_error = error_search(
+                            ["ResultFsPermissionDenied"]
+                        )
+                        file_not_found_error = error_search(["ResultFsTargetNotFound"])
+
                         last_errors = "\n".join(
                             errors[-1][:2] if "|E|" in errors[-1][0] else ""
                         )
@@ -373,6 +378,8 @@ class LogFileReader(Cog):
                         dump_hash_warning,
                         shader_cache_corruption,
                         update_keys_error,
+                        file_permissions_error,
+                        file_not_found_error,
                     )
 
                 # Finds the lastest error denoted by |E| in the log and its first line
@@ -383,6 +390,8 @@ class LogFileReader(Cog):
                     dump_hash_warning,
                     shader_cache_corruption_warn,
                     update_keys_error,
+                    file_permissions_error,
+                    file_not_found_error,
                 ) = analyse_error_message()
                 if last_error_snippet:
                     self.embed["game_info"]["errors"] = f"```{last_error_snippet}```"
@@ -421,6 +430,14 @@ class LogFileReader(Cog):
                         f"⚠️ Keys or firmware out of date, consider updating them"
                     )
                     self.embed["game_info"]["notes"].append(update_keys_error)
+
+                if file_permissions_error:
+                    file_permissions_error = f"⚠️ File permission error. Consider deleting save directory and allowing Ryujinx to make a new one"
+                    self.embed["game_info"]["notes"].append(file_permissions_error)
+
+                if file_not_found_error:
+                    file_not_found_error = f"⚠️ Save not found error. Consider starting game without a save file or using a new save file"
+                    self.embed["game_info"]["notes"].append(file_not_found_error)
 
                 timestamp_regex = re.compile(r"\d{2}:\d{2}:\d{2}\.\d{3}")
                 latest_timestamp = re.findall(timestamp_regex, log_file)[-1]
@@ -553,7 +570,8 @@ class LogFileReader(Cog):
                     vsync_warning = f"⚠️ V-Sync disabled can cause instability like games running faster than intended or longer load times"
                     self.embed["game_info"]["notes"].append(vsync_warning)
 
-                mainline_version = re.compile(r"^\d\.\d\.(\d){4}$")
+                mainline_version = re.compile(r"^\d\.\d\.\d+$")
+                old_mainline_version = re.compile(r"^\d\.\d\.(\d){4}$")
                 pr_version = re.compile(r"^\d\.\d\.\d\+([a-f]|\d){7}$")
                 ldn_version = re.compile(r"^\d\.\d\.\d\-ldn\d\.\d$")
 
@@ -568,18 +586,29 @@ class LogFileReader(Cog):
                         pr_version_warning = f"**⚠️ PR build logs should be posted in <#{config.bot_log_allowed_channels['pr-testing']}>**"
                         self.embed["game_info"]["notes"].append(pr_version_warning)
 
+                    if re.match(
+                        old_mainline_version, self.embed["emu_info"]["ryu_version"]
+                    ):
+                        old_mainline_version_warning = f"**🔴 Old Ryujinx version, please re-download from the Ryujinx website as auto-updates will not work on this version**"
+                        self.embed["game_info"]["notes"].append(
+                            old_mainline_version_warning
+                        )
+
                     if not (
                         re.match(
                             mainline_version, self.embed["emu_info"]["ryu_version"]
+                        )
+                        or re.match(
+                            old_mainline_version, self.embed["emu_info"]["ryu_version"]
                         )
                         or re.match(ldn_version, self.embed["emu_info"]["ryu_version"])
                         or re.match(pr_version, self.embed["emu_info"]["ryu_version"])
                         or re.match("Unknown", self.embed["emu_info"]["ryu_version"])
                     ):
-                        custom_firmware_warning = (
+                        custom_build_warning = (
                             "**⚠️ Custom builds are not officially supported**"
                         )
-                        self.embed["game_info"]["notes"].append(custom_firmware_warning)
+                        self.embed["game_info"]["notes"].append(custom_build_warning)
 
                 def severity(log_note_string):
                     symbols = ["❌", "🔴", "⚠️", "ℹ", "✅"]
