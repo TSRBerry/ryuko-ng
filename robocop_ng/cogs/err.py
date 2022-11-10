@@ -66,7 +66,7 @@ class Err(Cog):
     @commands.command(aliases=["wiiuserr", "uerr", "wuerr", "mochaerr"])
     async def wiiuerr(self, ctx, err: str):
         """Searches for Wii U error codes!
-            Usage: .wiiuserr/.uerr/.wuerr/.mochaerr <Error Code>"""
+        Usage: .wiiuserr/.uerr/.wuerr/.mochaerr <Error Code>"""
         if self.wiiu_re.match(err):  # Wii U
             module = err[2:3]  # Is that even true, idk just guessing
             desc = err[5:8]
@@ -94,7 +94,7 @@ class Err(Cog):
     @commands.command(aliases=["nxerr", "serr"])
     async def err(self, ctx, err: str):
         """Searches for Switch error codes!
-            Usage: .serr/.nxerr/.err <Error Code>"""
+        Usage: .serr/.nxerr/.err <Error Code>"""
 
         if self.switch_re.match(err) or err.startswith("0x"):  # Switch
 
@@ -168,7 +168,7 @@ class Err(Cog):
     @commands.command(aliases=["e2h"])
     async def err2hex(self, ctx, err: str):
         """Converts Nintendo Switch errors to hex
-            Usage: .err2hex <Error Code>"""
+        Usage: .err2hex <Error Code>"""
         if self.switch_re.match(err):
             module = int(err[0:4]) - 2000
             desc = int(err[5:9])
@@ -182,7 +182,7 @@ class Err(Cog):
     @commands.command(aliases=["h2e"])
     async def hex2err(self, ctx, err: str):
         """Converts Nintendo Switch errors to hex
-            Usage: .hex2err <Hex>"""
+        Usage: .hex2err <Hex>"""
         if err.startswith("0x"):
             err = err[2:]
             err = int(err, 16)

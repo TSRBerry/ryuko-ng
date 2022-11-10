@@ -18,15 +18,17 @@ class RyujinxVerification(Cog):
     async def on_member_join(self, member):
         await self.bot.wait_until_ready()
 
-        if (member.guild.id not in config.guild_whitelist):
+        if member.guild.id not in config.guild_whitelist:
             return
 
         join_channel = self.bot.get_channel(config.welcome_channel)
 
         if join_channel is not None:
             await join_channel.send(
-                'Hello {0.mention}! Welcome to Ryujinx! Please read the <#411271165429022730>, and then type the verifying command here to gain access to the rest of the channels.\n\nIf you need help with basic common questions, visit the <#585288848704143371> channel after joining.\n\nIf you need help with Animal Crossing visit the <#692104087889641472> channel for common issues and solutions. If you need help that is not Animal Crossing related, please visit the <#410208610455519243> channel after verifying.'.format(
-                    member))
+                "Hello {0.mention}! Welcome to Ryujinx! Please read the <#411271165429022730>, and then type the verifying command here to gain access to the rest of the channels.\n\nIf you need help with basic common questions, visit the <#585288848704143371> channel after joining.\n\nIf you need help with Animal Crossing visit the <#692104087889641472> channel for common issues and solutions. If you need help that is not Animal Crossing related, please visit the <#410208610455519243> channel after verifying.".format(
+                    member
+                )
+            )
 
     async def process_message(self, message):
         """Process the verification process"""
@@ -67,7 +69,7 @@ class RyujinxVerification(Cog):
     async def on_member_join(self, member):
         await self.bot.wait_until_ready()
 
-        if (member.guild.id not in config.guild_whitelist):
+        if member.guild.id not in config.guild_whitelist:
             return
 
         join_channel = self.bot.get_channel(config.welcome_channel)
@@ -80,8 +82,10 @@ class RyujinxVerification(Cog):
     async def reset(self, ctx, limit: int = 100, force: bool = False):
         """Wipes messages and pastes the welcome message again. Staff only."""
         if ctx.message.channel.id != config.welcome_channel and not force:
-            await ctx.send(f"This command is limited to"
-                           f" <#{config.welcome_channel}>, unless forced.")
+            await ctx.send(
+                f"This command is limited to"
+                f" <#{config.welcome_channel}>, unless forced."
+            )
             return
         await self.do_reset(ctx.channel, ctx.author.mention, limit)
 

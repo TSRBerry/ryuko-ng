@@ -262,7 +262,7 @@ class LogFileReader(Cog):
                         setting_value = [
                             line.split()[-1]
                             for line in log_file.splitlines()
-                            if re.search(fr"LogValueChange: ({setting_string})\s", line)
+                            if re.search(rf"LogValueChange: ({setting_string})\s", line)
                         ][-1]
                         if setting_value and setting.get(name):
                             setting[name] = setting_value
