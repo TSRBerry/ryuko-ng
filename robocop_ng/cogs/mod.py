@@ -629,6 +629,62 @@ class Mod(Cog):
         await log_channel.send(chan_msg)
 
     @commands.guild_only()
+    @commands.bot_has_permissions(ban_members=True)
+    @commands.check(check_if_staff)
+    @commands.command(aliases=["softwarn"])
+    async def hackwarn(self, ctx, target: int, *, reason: str = ""):
+        """Warns a user with their ID, doesn't message them, staff only."""
+        target_user = await self.bot.fetch_user(target)
+        target_member = ctx.guild.get_member(target)
+        # Hedge-proofing the code
+        if target == ctx.author.id:
+            return await ctx.send("You can't do mod actions on yourself.")
+        elif target == self.bot.user:
+            return await ctx.send(
+                f"I'm sorry {ctx.author.mention}, I'm afraid I can't do that."
+            )
+        elif target_member and self.check_if_target_is_staff(target_member):
+            return await ctx.send(
+                "I can't warn this user as they're a member of staff."
+            )
+
+        warn_count = userlog(target, ctx.author, reason, "warns", target_user)
+
+        safe_name = await commands.clean_content(escape_markdown=True).convert(
+            ctx, str(target)
+        )
+
+        chan_msg = (
+            f"⚠️ **Hackwarned**: {str(ctx.author)} warned "
+            f"{target_user.mention} (warn #{warn_count}) | {safe_name}\n"
+            f"🏷 __User ID__: {target}\n"
+        )
+
+        if warn_count == 4:
+            userlog(target, ctx.author, "exceeded warn limit", "bans", target_user.name)
+            chan_msg += "**This resulted in an auto-hackban.**\n"
+            await ctx.guild.ban(
+                target_user,
+                reason=f"{ctx.author}, reason: exceeded warn limit",
+                delete_message_days=0,
+            )
+
+        if reason:
+            chan_msg += f'✏️ __Reason__: "{reason}"'
+        else:
+            chan_msg += (
+                "Please add an explanation below. In the future"
+                ", it is recommended to use "
+                "`.warn <user> [reason]`."
+            )
+
+        chan_msg += f"\n🔗 __Jump__: <{ctx.message.jump_url}>"
+
+        log_channel = self.bot.get_channel(config.modlog_channel)
+        await log_channel.send(chan_msg)
+        await ctx.send(f"{safe_name} warned. " f"User has {warn_count} warning(s).")
+
+    @commands.guild_only()
     @commands.check(check_if_staff)
     @commands.command(aliases=["setnick", "nick"])
     async def nickname(self, ctx, target: discord.Member, *, nick: str = ""):
