@@ -61,13 +61,21 @@ bot.config = config
 bot.script_name = script_name
 bot.wanted_jsons = wanted_jsons
 
+async def get_channel_safe(self, id):
+    res = self.get_channel(id)
+    if res is None:
+        res = await self.fetch_channel(id)
+
+    return res
+
+commands.Bot.get_channel_safe = get_channel_safe
 
 @bot.event
 async def on_ready():
     aioh = {"User-Agent": f"{script_name}/1.0'"}
     bot.aiosession = aiohttp.ClientSession(headers=aioh)
     bot.app_info = await bot.application_info()
-    bot.botlog_channel = bot.get_channel(config.botlog_channel)
+    bot.botlog_channel = await bot.get_channel_safe(config.botlog_channel)
 
     log.info(
         f"\nLogged in as: {bot.user.name} - "
@@ -107,7 +115,7 @@ async def on_command(ctx):
 
 @bot.event
 async def on_error(event_method, *args, **kwargs):
-    log.error(f"Error on {event_method}: {sys.exc_info()}")
+    log.exception(f"Error on {event_method}:")
 
 
 @bot.event

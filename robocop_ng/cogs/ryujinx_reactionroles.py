@@ -114,14 +114,18 @@ class RyujinxReactionRoles(Cog):
     async def handle_offline_reaction_add(self):
         await self.bot.wait_until_ready()
         for reaction in self.m.reactions:
-            for user in await reaction.users().flatten():
+            reactions_users = []
+            async for user in reaction.users():
+                reactions_users.append(user)
+
+            for user in reactions_users:
                 emoji_name = str(reaction.emoji)
                 if emoji_name[0] == "<":
                     emoji_name = emoji_name[1:-1]
 
                 if self.get_role_from_emoji(emoji_name) is not None:
                     role = self.get_role(emoji_name)
-                    if not user in role.members and not user.bot:
+                    if not user in role.members and not user.bot and type(user) is discord.Member:
                         await user.add_roles(role)
                 else:
                     await self.m.clear_reaction(reaction.emoji)
@@ -134,10 +138,16 @@ class RyujinxReactionRoles(Cog):
                 if emoji_name[0] == "<":
                     emoji_name = emoji_name[1:-1]
 
+                reactions_users = []
+                async for user in reaction.users():
+                    reactions_users.append(user)
+
                 role = self.get_role(emoji_name)
                 for user in role.members:
-                    if user not in await reaction.users().flatten():
-                        await self.m.guild.get_member(user.id).remove_roles(role)
+                    if user not in reactions_users:
+                        member = self.m.guild.get_member(user.id)
+                        if member is not None:
+                            await member.remove_roles(role)
 
     def load_reaction_config(self):
         if not os.path.exists(self.file):
@@ -164,9 +174,14 @@ class RyujinxReactionRoles(Cog):
         guild = self.bot.guilds[0]  # The ryu guild in which the bot is.
         channel = guild.get_channel(self.channel_id)
 
-        m = discord.utils.get(
-            await channel.history().flatten(), id=self.reaction_config["id"]
-        )
+        if channel is None:
+            channel = await guild.fetch_channel(self.channel_id)
+
+        history = []
+        async for msg in channel.history():
+            history.append(msg)
+
+        m = discord.utils.get(history, id=self.reaction_config["id"])
         if m is None:
             self.reaction_config["id"] = None
 
@@ -183,9 +198,7 @@ class RyujinxReactionRoles(Cog):
             await self.handle_offline_reaction_remove()
 
         else:
-            self.m = discord.utils.get(
-                await channel.history().flatten(), id=self.reaction_config["id"]
-            )
+            self.m = m
             self.msg_id = self.m.id
 
             await self.m.edit(embed=await self.generate_embed())
@@ -199,6 +212,7 @@ class RyujinxReactionRoles(Cog):
 
     @Cog.listener()
     async def on_ready(self):
+        await self.bot.wait_until_ready()
         self.reaction_config = self.load_reaction_config()
 
         await self.reload_reaction_message()

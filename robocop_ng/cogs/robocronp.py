@@ -24,7 +24,7 @@ class Robocronp(Cog):
     async def send_data(self):
         await self.bot.wait_until_ready()
         data_files = [discord.File(fpath) for fpath in self.bot.wanted_jsons]
-        log_channel = self.bot.get_channel(config.botlog_channel)
+        log_channel = await self.bot.get_channel_safe(config.botlog_channel)
         await log_channel.send("Hourly data backups:", files=data_files)
 
     @commands.guild_only()
@@ -62,7 +62,7 @@ class Robocronp(Cog):
 
     async def do_jobs(self, ctab, jobtype, timestamp):
         await self.bot.wait_until_ready()
-        log_channel = self.bot.get_channel(config.botlog_channel)
+        log_channel = await self.bot.get_channel_safe(config.botlog_channel)
         for job_name in ctab[jobtype][timestamp]:
             try:
                 job_details = ctab[jobtype][timestamp][job_name]
@@ -101,8 +101,8 @@ class Robocronp(Cog):
 
     async def clean_channel(self, channel_id):
         await self.bot.wait_until_ready()
-        log_channel = self.bot.get_channel(config.botlog_channel)
-        channel = self.bot.get_channel(channel_id)
+        log_channel = await self.bot.get_channel_safe(config.botlog_channel)
+        channel = await self.bot.get_channel_safe(channel_id)
         try:
             done_cleaning = False
             count = 0
@@ -123,7 +123,7 @@ class Robocronp(Cog):
     @tasks.loop(minutes=1)
     async def minutely(self):
         await self.bot.wait_until_ready()
-        log_channel = self.bot.get_channel(config.botlog_channel)
+        log_channel = await self.bot.get_channel_safe(config.botlog_channel)
         try:
             ctab = get_crontab()
             timestamp = time.time()
@@ -144,7 +144,7 @@ class Robocronp(Cog):
     @tasks.loop(hours=1)
     async def hourly(self):
         await self.bot.wait_until_ready()
-        log_channel = self.bot.get_channel(config.botlog_channel)
+        log_channel = await self.bot.get_channel_safe(config.botlog_channel)
         try:
             await self.send_data()
             # Handle clean channels
@@ -159,11 +159,11 @@ class Robocronp(Cog):
     @tasks.loop(hours=24)
     async def daily(self):
         await self.bot.wait_until_ready()
-        log_channel = self.bot.get_channel(config.botlog_channel)
+        log_channel = await self.bot.get_channel_safe(config.botlog_channel)
         try:
             # Reset verification and algorithm
             if "cogs.verification" in config.initial_cogs:
-                verif_channel = self.bot.get_channel(config.welcome_channel)
+                verif_channel = await self.bot.get_channel_safe(config.welcome_channel)
                 await self.bot.do_resetalgo(verif_channel, "daily robocronp")
         except:
             # Don't kill cronjobs if something goes wrong.
