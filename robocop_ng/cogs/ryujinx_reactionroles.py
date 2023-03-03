@@ -27,6 +27,8 @@ class RyujinxReactionRoles(Cog):
     async def register_reaction_role(self, ctx, target_role_id: int, emoji_name: str):
         """Register a reaction role, staff only."""
 
+        await self.bot.wait_until_ready()
+
         if emoji_name[0] == "<":
             emoji_name = emoji_name[1:-1]
 
@@ -110,6 +112,7 @@ class RyujinxReactionRoles(Cog):
         return embed
 
     async def handle_offline_reaction_add(self):
+        await self.bot.wait_until_ready()
         for reaction in self.m.reactions:
             for user in await reaction.users().flatten():
                 emoji_name = str(reaction.emoji)
@@ -124,6 +127,7 @@ class RyujinxReactionRoles(Cog):
                     await self.m.clear_reaction(reaction.emoji)
 
     async def handle_offline_reaction_remove(self):
+        await self.bot.wait_until_ready()
         for emoji in self.emoji_map:
             for reaction in self.m.reactions:
                 emoji_name = str(reaction.emoji)
@@ -149,6 +153,7 @@ class RyujinxReactionRoles(Cog):
             json.dump(value, f)
 
     async def reload_reaction_message(self, should_handle_offline=True):
+        await self.bot.wait_until_ready()
         self.emoji_map = collections.OrderedDict(
             sorted(
                 self.reaction_config["reaction_roles_emoji_map"].items(),
@@ -200,6 +205,7 @@ class RyujinxReactionRoles(Cog):
 
     @Cog.listener()
     async def on_raw_reaction_add(self, payload):
+        await self.bot.wait_until_ready()
         if payload.member.bot:
             pass
         else:
@@ -221,6 +227,7 @@ class RyujinxReactionRoles(Cog):
 
     @Cog.listener()
     async def on_raw_reaction_remove(self, payload):
+        await self.bot.wait_until_ready()
         if payload.message_id == self.msg_id:
             emoji_name = self.get_emoji_full_name(payload.emoji)
 
