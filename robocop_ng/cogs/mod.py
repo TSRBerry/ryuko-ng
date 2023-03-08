@@ -698,7 +698,10 @@ class Mod(Cog):
 
         !move {channel to move to} {number of messages}"""
         # get a list of the messages
-        fetchedMessages = await ctx.channel.history(limit=limit + 1).flatten()
+        fetchedMessages = []
+
+        async for message in ctx.channel.history(limit=limit + 1):
+            fetchedMessages.append(message)
 
         # delete all of those messages from the channel
         for i in fetchedMessages:
@@ -718,9 +721,15 @@ class Mod(Cog):
             else:
                 # Create embed message object and set content to original
                 embedMessage = discord.Embed(description=messages.content)
+
+                avatar_url = None
+
+                if messages.author.avatar is not None:
+                    avatar_url = messages.author.avatar.url
+
                 # set the embed message author to original author
                 embedMessage.set_author(
-                    name=messages.author, icon_url=messages.author.avatar_url
+                    name=messages.author, icon_url=avatar_url
                 )
                 # if message has attachments add them
                 if messages.attachments:
