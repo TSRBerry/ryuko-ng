@@ -1,12 +1,14 @@
-import discord
-import config
 from datetime import datetime
+
+import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
-from helpers.checks import check_if_staff
-from helpers.robocronp import add_job
-from helpers.userlogs import userlog
-from helpers.restrictions import add_restriction
+
+from robocop_ng import config
+from robocop_ng.helpers.checks import check_if_staff
+from robocop_ng.helpers.restrictions import add_restriction
+from robocop_ng.helpers.robocronp import add_job
+from robocop_ng.helpers.userlogs import userlog
 
 
 class ModTimed(Cog):

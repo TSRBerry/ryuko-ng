@@ -1,13 +1,13 @@
+import asyncio
+import logging.handlers
 import os
 import sys
-import logging
-import logging.handlers
-import asyncio
-import aiohttp
-import config
 
+import aiohttp
 import discord
 from discord.ext import commands
+
+from robocop_ng import config
 
 # TODO: check __name__ for __main__ nerd
 
@@ -61,6 +61,7 @@ bot.config = config
 bot.script_name = script_name
 bot.wanted_jsons = wanted_jsons
 
+
 async def get_channel_safe(self, id):
     res = self.get_channel(id)
     if res is None:
@@ -68,7 +69,9 @@ async def get_channel_safe(self, id):
 
     return res
 
+
 commands.Bot.get_channel_safe = get_channel_safe
+
 
 @bot.event
 async def on_ready():
@@ -165,7 +168,7 @@ async def on_command_error(ctx, error):
             "to run this command in the current channel."
         )
     elif isinstance(error, commands.CommandInvokeError) and (
-        "Cannot send messages to this user" in error_text
+            "Cannot send messages to this user" in error_text
     ):
         return await ctx.send(
             f"{ctx.author.mention}: I can't DM you.\n"
@@ -186,14 +189,15 @@ async def on_command_error(ctx, error):
 
     # Keep a list of commands that involve mentioning users
     # and can involve users leaving/getting banned
+    # noinspection NonAsciiCharacters,PyPep8Naming
     ಠ_ಠ = ["warn", "kick", "ban"]
 
     if isinstance(error, commands.BadArgument):
         # and if said commands get used, add a specific notice.
         if ctx.command.name in ಠ_ಠ:
             help_text = (
-                "This probably means that user left (or already got kicked/banned).\n"
-                + help_text
+                    "This probably means that user left (or already got kicked/banned).\n"
+                    + help_text
             )
 
         return await ctx.send(
@@ -217,7 +221,7 @@ async def on_message(message):
     # an allowed command
     welcome_allowed = ["reset", "kick", "ban", "warn"]
     if message.channel.id == config.welcome_channel and not any(
-        cmd in message.content for cmd in welcome_allowed
+            cmd in message.content for cmd in welcome_allowed
     ):
         return
 

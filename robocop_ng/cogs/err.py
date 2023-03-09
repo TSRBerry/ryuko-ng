@@ -1,9 +1,10 @@
 import re
-import discord
 
+import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
-from helpers.errcodes import *
+
+from robocop_ng.helpers.errcodes import *
 
 
 class Err(Cog):
@@ -142,7 +143,7 @@ class Err(Cog):
             embed.add_field(name="Description", value=desc, inline=True)
 
             if "ban" in err_description:
-                embed.set_footer("F to you | Console: Switch")
+                embed.set_footer(text="F to you | Console: Switch")
             else:
                 embed.set_footer(text="Console: Switch")
 

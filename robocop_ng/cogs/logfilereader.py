@@ -5,7 +5,7 @@ import aiohttp
 from discord import Colour, Embed
 from discord.ext.commands import Cog
 
-import config
+from robocop_ng import config
 
 logging.basicConfig(
     format="%(asctime)s (%(levelname)s) %(message)s (Line %(lineno)d)",
@@ -735,7 +735,7 @@ class LogFileReader(Cog):
                         await reply_message.edit(
                             content=f"Error: Couldn't parse log; parser threw `{type(error).__name__}` exception."
                         )
-                        print(logging.warn(error))
+                        print(logging.warning(error))
                 else:
                     duplicate_log_file = next(
                         (

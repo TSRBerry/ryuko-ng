@@ -1,10 +1,11 @@
-import config
-import discord
 import io
-import urllib.parse
 import os.path
+
+import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
+
+from robocop_ng import config
 
 
 class Lists(Cog):

@@ -1,9 +1,11 @@
 import asyncio
+
 import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
-import config
-from helpers.checks import check_if_staff
+
+from robocop_ng import config
+from robocop_ng.helpers.checks import check_if_staff
 
 
 class ModReact(Cog):

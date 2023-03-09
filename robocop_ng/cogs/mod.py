@@ -1,11 +1,13 @@
+import io
+
 import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
-import config
-from helpers.checks import check_if_staff, check_if_bot_manager
-from helpers.userlogs import userlog
-from helpers.restrictions import add_restriction, remove_restriction
-import io
+
+from robocop_ng import config
+from robocop_ng.helpers.checks import check_if_staff, check_if_bot_manager
+from robocop_ng.helpers.restrictions import add_restriction, remove_restriction
+from robocop_ng.helpers.userlogs import userlog
 
 
 class Mod(Cog):
@@ -712,28 +714,28 @@ class Mod(Cog):
         fetchedMessages = fetchedMessages[:-1]
 
         # Loop over the messages fetched
-        for messages in fetchedMessages:
-            # if the message is embeded already
-            if messages.embeds:
+        for message in fetchedMessages:
+            # if the message is embedded already
+            if message.embeds:
                 # set the embed message to the old embed object
-                embedMessage = messages.embeds[0]
+                embedMessage = message.embeds[0]
             # else
             else:
                 # Create embed message object and set content to original
-                embedMessage = discord.Embed(description=messages.content)
+                embedMessage = discord.Embed(description=message.content)
 
                 avatar_url = None
 
-                if messages.author.avatar is not None:
-                    avatar_url = messages.author.avatar.url
+                if message.author.display_avatar is not None:
+                    avatar_url = str(message.author.display_avatar)
 
                 # set the embed message author to original author
                 embedMessage.set_author(
-                    name=messages.author, icon_url=avatar_url
+                    name=message.author, icon_url=avatar_url
                 )
                 # if message has attachments add them
-                if messages.attachments:
-                    for i in messages.attachments:
+                if message.attachments:
+                    for i in message.attachments:
                         embedMessage.set_image(url=i.proxy_url)
 
             # Send to the desired channel

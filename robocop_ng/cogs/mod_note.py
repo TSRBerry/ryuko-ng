@@ -1,8 +1,9 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
-from helpers.checks import check_if_staff
-from helpers.userlogs import userlog
+
+from robocop_ng.helpers.checks import check_if_staff
+from robocop_ng.helpers.userlogs import userlog
 
 
 class ModNote(Cog):

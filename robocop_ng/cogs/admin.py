@@ -1,11 +1,13 @@
+import inspect
+import re
+import traceback
+
 import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
-import traceback
-import inspect
-import re
-import config
-from helpers.checks import check_if_bot_manager
+
+from robocop_ng import config
+from robocop_ng.helpers.checks import check_if_bot_manager
 
 
 class Admin(Cog):

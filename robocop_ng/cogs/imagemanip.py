@@ -1,13 +1,15 @@
+import textwrap
+
+import PIL.Image
+import PIL.ImageDraw
+import PIL.ImageFilter
+import PIL.ImageFont
+import PIL.ImageOps
 import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
-from helpers.checks import check_if_staff_or_ot
-import textwrap
-import PIL.Image
-import PIL.ImageFilter
-import PIL.ImageOps
-import PIL.ImageFont
-import PIL.ImageDraw
+
+from robocop_ng.helpers.checks import check_if_staff_or_ot
 
 
 class ImageManip(Cog):
