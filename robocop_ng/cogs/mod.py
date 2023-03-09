@@ -1,12 +1,13 @@
 import io
 
-import config
 import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
-from helpers.checks import check_if_staff, check_if_bot_manager
-from helpers.restrictions import add_restriction, remove_restriction
-from helpers.userlogs import userlog
+
+from robocop_ng import config
+from robocop_ng.helpers.checks import check_if_staff, check_if_bot_manager
+from robocop_ng.helpers.restrictions import add_restriction, remove_restriction
+from robocop_ng.helpers.userlogs import userlog
 
 
 class Mod(Cog):

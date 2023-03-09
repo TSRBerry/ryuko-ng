@@ -1,10 +1,12 @@
-from discord.ext.commands import Cog
-import re
-import config
-import secrets
 import asyncio
 import base64
 import hmac
+import re
+import secrets
+
+from discord.ext.commands import Cog
+
+from robocop_ng import config
 
 
 class YubicoOTP(Cog):

@@ -1,12 +1,13 @@
-import config
-from discord.ext import commands
-from discord.ext.commands import Cog
-from discord.enums import MessageType
-from discord import Embed
 import aiohttp
 import gidgethub.aiohttp
-from helpers.checks import check_if_collaborator
-from helpers.checks import check_if_pin_channel
+from discord import Embed
+from discord.enums import MessageType
+from discord.ext import commands
+from discord.ext.commands import Cog
+
+from robocop_ng import config
+from robocop_ng.helpers.checks import check_if_collaborator
+from robocop_ng.helpers.checks import check_if_pin_channel
 
 
 class Pin(Cog):

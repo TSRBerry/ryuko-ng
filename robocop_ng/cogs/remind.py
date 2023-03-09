@@ -1,10 +1,12 @@
-import discord
 import asyncio
 import time
 from datetime import datetime
+
+import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
-from helpers.robocronp import add_job, get_crontab
+
+from robocop_ng.helpers.robocronp import add_job, get_crontab
 
 
 class Remind(Cog):

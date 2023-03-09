@@ -1,13 +1,15 @@
+import asyncio
+import hashlib
+import itertools
+import random
+from inspect import cleandoc
+
 import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
-import asyncio
-import config
-import random
-from inspect import cleandoc
-import hashlib
-import itertools
-from helpers.checks import check_if_staff
+
+from robocop_ng import config
+from robocop_ng.helpers.checks import check_if_staff
 
 
 class Verification(Cog):

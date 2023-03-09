@@ -1,11 +1,13 @@
+import datetime
+import math
+import platform
 import random
+
 import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
-import math
-import platform
-from helpers.checks import check_if_staff_or_ot
-import datetime
+
+from robocop_ng.helpers.checks import check_if_staff_or_ot
 
 
 class Meme(Cog):

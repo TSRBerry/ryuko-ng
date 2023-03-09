@@ -1,12 +1,14 @@
-import config
 import time
-import discord
 import traceback
+
+import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import Cog
-from helpers.robocronp import get_crontab, delete_job
-from helpers.restrictions import remove_restriction
-from helpers.checks import check_if_staff
+
+from robocop_ng import config
+from robocop_ng.helpers.checks import check_if_staff
+from robocop_ng.helpers.restrictions import remove_restriction
+from robocop_ng.helpers.robocronp import get_crontab, delete_job
 
 
 class Robocronp(Cog):

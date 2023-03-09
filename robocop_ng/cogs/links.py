@@ -1,7 +1,8 @@
 import discord
-import config
 from discord.ext import commands
 from discord.ext.commands import Cog
+
+from robocop_ng import config
 
 
 class Links(Cog):

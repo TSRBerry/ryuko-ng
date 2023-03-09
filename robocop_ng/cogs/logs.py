@@ -1,11 +1,12 @@
 import json
 import re
 
-import config
 import discord
 from discord.ext.commands import Cog
-from helpers.checks import check_if_staff
-from helpers.restrictions import get_user_restrictions
+
+from robocop_ng import config
+from robocop_ng.helpers.checks import check_if_staff
+from robocop_ng.helpers.restrictions import get_user_restrictions
 
 
 class Logs(Cog):

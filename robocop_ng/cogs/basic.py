@@ -1,9 +1,10 @@
 import time
 
-import config
 import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
+
+from robocop_ng import config
 
 
 class Basic(Cog):

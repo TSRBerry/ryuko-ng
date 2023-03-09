@@ -1,12 +1,13 @@
 import collections
 import json
-import config
 import os
 
 import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
-from helpers.checks import check_if_staff
+
+from robocop_ng import config
+from robocop_ng.helpers.checks import check_if_staff
 
 
 class RyujinxReactionRoles(Cog):
