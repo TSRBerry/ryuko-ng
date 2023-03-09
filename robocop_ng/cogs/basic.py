@@ -1,4 +1,5 @@
 import time
+
 import config
 import discord
 from discord.ext import commands
@@ -40,7 +41,7 @@ class Basic(Cog):
             title="Robocop-NG", url=config.source_url, description=config.embed_desc
         )
 
-        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        embed.set_thumbnail(url=str(self.bot.user.display_avatar))
 
         await ctx.send(embed=embed)
 

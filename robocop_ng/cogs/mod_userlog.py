@@ -1,8 +1,9 @@
+import json
+
+import config
 import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
-import config
-import json
 from helpers.checks import check_if_staff
 from helpers.userlogs import get_userlog, set_userlog, userlog_event_types
 
@@ -233,7 +234,7 @@ class ModUserlog(Cog):
         await ctx.send(
             f"user = {user_name}\n"
             f"id = {user.id}\n"
-            f"avatar = {user.avatar_url}\n"
+            f"avatar = {user.display_avatar}\n"
             f"bot = {user.bot}\n"
             f"created_at = {user.created_at}\n"
             f"display_name = {display_name}\n"
