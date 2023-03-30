@@ -18,6 +18,7 @@ class Macro(Cog):
     @commands.cooldown(3, 30, BucketType.member)
     @commands.command(aliases=["m"])
     async def macro(self, ctx: Context, target: Optional[discord.Member], key: str):
+        await ctx.message.delete()
         if len(key) > 0:
             text = get_macro(key)
             if text is not None:
