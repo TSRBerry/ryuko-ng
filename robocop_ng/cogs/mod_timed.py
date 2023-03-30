@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 import discord
 from discord.ext import commands
@@ -23,9 +24,16 @@ class ModTimed(Cog):
     @commands.check(check_if_staff)
     @commands.command()
     async def timeban(
-        self, ctx, target: discord.Member, duration: str, *, reason: str = ""
+        self, ctx, target: Optional[discord.Member], duration: str, *, reason: str = ""
     ):
         """Bans a user for a specified amount of time, staff only."""
+        if target is None and ctx.message.reference is None:
+            return await ctx.send(
+                f"I'm sorry {ctx.author.mention}, I'm afraid I can't do that."
+            )
+        else:
+            if target is None:
+                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
         # Hedge-proofing the code
         if target == ctx.author:
             return await ctx.send("You can't do mod actions on yourself.")
@@ -89,9 +97,16 @@ class ModTimed(Cog):
     @commands.check(check_if_staff)
     @commands.command()
     async def timemute(
-        self, ctx, target: discord.Member, duration: str, *, reason: str = ""
+        self, ctx, target: Optional[discord.Member], duration: str, *, reason: str = ""
     ):
         """Mutes a user for a specified amount of time, staff only."""
+        if target is None and ctx.message.reference is None:
+            return await ctx.send(
+                f"I'm sorry {ctx.author.mention}, I'm afraid I can't do that."
+            )
+        else:
+            if target is None:
+                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
         # Hedge-proofing the code
         if target == ctx.author:
             return await ctx.send("You can't do mod actions on yourself.")
