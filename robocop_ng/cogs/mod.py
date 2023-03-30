@@ -1,4 +1,5 @@
 import io
+from typing import Optional
 
 import discord
 from discord.ext import commands
@@ -38,8 +39,15 @@ class Mod(Cog):
     @commands.guild_only()
     @commands.check(check_if_staff)
     @commands.command()
-    async def mute(self, ctx, target: discord.Member, *, reason: str = ""):
+    async def mute(self, ctx, target: Optional[discord.Member], *, reason: str = ""):
         """Mutes a user, staff only."""
+        if target is None and ctx.message.reference is None:
+            return await ctx.send(
+                f"I'm sorry {ctx.author.mention}, I'm afraid I can't do that."
+            )
+        else:
+            if target is None:
+                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
         # Hedge-proofing the code
         if target == ctx.author:
             return await ctx.send("You can't do mod actions on yourself.")
@@ -123,8 +131,15 @@ class Mod(Cog):
     @commands.bot_has_permissions(kick_members=True)
     @commands.check(check_if_staff)
     @commands.command()
-    async def kick(self, ctx, target: discord.Member, *, reason: str = ""):
+    async def kick(self, ctx, target: Optional[discord.Member], *, reason: str = ""):
         """Kicks a user, staff only."""
+        if target is None and ctx.message.reference is None:
+            return await ctx.send(
+                f"I'm sorry {ctx.author.mention}, I'm afraid I can't do that."
+            )
+        else:
+            if target is None:
+                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
         # Hedge-proofing the code
         if target == ctx.author:
             return await ctx.send("You can't do mod actions on yourself.")
@@ -184,8 +199,15 @@ class Mod(Cog):
     @commands.bot_has_permissions(ban_members=True)
     @commands.check(check_if_staff)
     @commands.command(aliases=["yeet"])
-    async def ban(self, ctx, target: discord.Member, *, reason: str = ""):
+    async def ban(self, ctx, target: Optional[discord.Member], *, reason: str = ""):
         """Bans a user, staff only."""
+        if target is None and ctx.message.reference is None:
+            return await ctx.send(
+                f"I'm sorry {ctx.author.mention}, I'm afraid I can't do that."
+            )
+        else:
+            if target is None:
+                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
         # Hedge-proofing the code
         if target == ctx.author:
             if target.id == 181627658520625152:
@@ -246,9 +268,16 @@ class Mod(Cog):
     @commands.check(check_if_staff)
     @commands.command()
     async def bandel(
-        self, ctx, day_count: int, target: discord.Member, *, reason: str = ""
+        self, ctx, day_count: int, target: Optional[discord.Member], *, reason: str = ""
     ):
         """Bans a user for a given number of days, staff only."""
+        if target is None and ctx.message.reference is None:
+            return await ctx.send(
+                f"I'm sorry {ctx.author.mention}, I'm afraid I can't do that."
+            )
+        else:
+            if target is None:
+                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
         # Hedge-proofing the code
         if target == ctx.author:
             if target.id == 181627658520625152:
@@ -488,12 +517,20 @@ class Mod(Cog):
     @commands.guild_only()
     @commands.check(check_if_staff)
     @commands.command()
-    async def approve(self, ctx, target: discord.Member, role: str = "community"):
+    async def approve(self, ctx, target: Optional[discord.Member], role: str = "community"):
         """Add a role to a user (default: community), staff only."""
         if role not in config.named_roles:
             return await ctx.send(
                 "No such role! Available roles: " + ",".join(config.named_roles)
             )
+
+        if target is None and ctx.message.reference is None:
+            return await ctx.send(
+                f"I'm sorry {ctx.author.mention}, I'm afraid I can't do that."
+            )
+        else:
+            if target is None:
+                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
 
         log_channel = self.bot.get_channel(config.modlog_channel)
         target_role = ctx.guild.get_role(config.named_roles[role])
@@ -514,12 +551,20 @@ class Mod(Cog):
     @commands.guild_only()
     @commands.check(check_if_staff)
     @commands.command(aliases=["unapprove"])
-    async def revoke(self, ctx, target: discord.Member, role: str = "community"):
+    async def revoke(self, ctx, target: Optional[discord.Member], role: str = "community"):
         """Remove a role from a user (default: community), staff only."""
         if role not in config.named_roles:
             return await ctx.send(
                 "No such role! Available roles: " + ",".join(config.named_roles)
             )
+
+        if target is None and ctx.message.reference is None:
+            return await ctx.send(
+                f"I'm sorry {ctx.author.mention}, I'm afraid I can't do that."
+            )
+        else:
+            if target is None:
+                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
 
         log_channel = self.bot.get_channel(config.modlog_channel)
         target_role = ctx.guild.get_role(config.named_roles[role])
@@ -555,8 +600,15 @@ class Mod(Cog):
     @commands.guild_only()
     @commands.check(check_if_staff)
     @commands.command()
-    async def warn(self, ctx, target: discord.Member, *, reason: str = ""):
+    async def warn(self, ctx, target: Optional[discord.Member], *, reason: str = ""):
         """Warns a user, staff only."""
+        if target is None and ctx.message.reference is None:
+            return await ctx.send(
+                f"I'm sorry {ctx.author.mention}, I'm afraid I can't do that."
+            )
+        else:
+            if target is None:
+                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
         # Hedge-proofing the code
         if target == ctx.author:
             return await ctx.send("You can't do mod actions on yourself.")
@@ -631,10 +683,17 @@ class Mod(Cog):
     @commands.guild_only()
     @commands.check(check_if_staff)
     @commands.command(aliases=["setnick", "nick"])
-    async def nickname(self, ctx, target: discord.Member, *, nick: str = ""):
+    async def nickname(self, ctx, target: Optional[discord.Member], *, nick: str = ""):
         """Sets a user's nickname, staff only.
 
         Just send .nickname <user> to wipe the nickname."""
+        if target is None and ctx.message.reference is None:
+            return await ctx.send(
+                f"I'm sorry {ctx.author.mention}, I'm afraid I can't do that."
+            )
+        else:
+            if target is None:
+                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
 
         try:
             if nick:
