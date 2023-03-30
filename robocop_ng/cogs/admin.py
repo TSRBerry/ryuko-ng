@@ -108,7 +108,7 @@ class Admin(Cog):
         if auto:
             cogs_to_reload = re.findall(r"cogs/([a-z_]*).py[ ]*\|", git_output)
             for cog in cogs_to_reload:
-                cog_name = "cogs." + cog
+                cog_name = "robocop_ng.cogs." + cog
                 if cog_name not in config.initial_cogs:
                     continue
 
@@ -131,7 +131,7 @@ class Admin(Cog):
     async def load(self, ctx, ext: str):
         """Loads a cog, bot manager only."""
         try:
-            await self.bot.load_extension("cogs." + ext)
+            await self.bot.load_extension("robocop_ng.cogs." + ext)
             await self.cog_load_actions(ext)
         except:
             await ctx.send(
@@ -147,7 +147,7 @@ class Admin(Cog):
     @commands.command()
     async def unload(self, ctx, ext: str):
         """Unloads a cog, bot manager only."""
-        await self.bot.unload_extension("cogs." + ext)
+        await self.bot.unload_extension("robocop_ng.cogs." + ext)
         self.bot.log.info(f"Unloaded ext {ext}")
         await ctx.send(f":white_check_mark: `{ext}` successfully unloaded.")
 
@@ -161,8 +161,8 @@ class Admin(Cog):
             self.lastreload = ext
 
         try:
-            await self.bot.unload_extension("cogs." + ext)
-            await self.bot.load_extension("cogs." + ext)
+            await self.bot.unload_extension("robocop_ng.cogs." + ext)
+            await self.bot.load_extension("robocop_ng.cogs." + ext)
             await self.cog_load_actions(ext)
         except:
             await ctx.send(
