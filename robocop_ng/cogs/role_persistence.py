@@ -27,3 +27,6 @@ class RolePersistence(Cog):
             user_roles = [member.guild.get_role(int(role)) for role in user_roles
                           if member.guild.get_role(int(role)) is not None]
             await member.add_roles(*user_roles, reason="Restoring old roles from `role_persistence`.")
+
+async def setup(bot):
+    await bot.add_cog(RolePersistence(bot))
