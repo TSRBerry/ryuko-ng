@@ -53,10 +53,11 @@ class Macro(Cog):
     async def list_macros(self, ctx: Context):
         macros = get_macros()
         if len(macros) > 0:
-            await ctx.send(
-                "📝 **Macros**:\n"
-                "\n".join([f"- {key}" for key in macros.keys()])
-            )
+            macros = [f"- {key}\n" for key in sorted(macros.keys())]
+            message = "📝 **Macros**:\n"
+            for macro_key in macros:
+                message += macro_key
+            await ctx.send(message)
         else:
             await ctx.send("Couldn't find any macros.")
 
