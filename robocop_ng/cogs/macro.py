@@ -25,7 +25,10 @@ class Macro(Cog):
                 if target is not None:
                     await ctx.send(f"{target.mention}:\n{text}")
                 else:
-                    await ctx.send(text)
+                    if ctx.message.reference is not None:
+                        await ctx.send(text, reference=ctx.message.reference, mention_author=True)
+                    else:
+                        await ctx.send(text)
             else:
                 await ctx.send(
                     f"{ctx.author.mention}: The macro '{key}' doesn't exist."
