@@ -77,7 +77,7 @@ def add_aliases(key: str, aliases: list[str]) -> bool:
     macros = get_macros_dict()
     key = key.lower()
     success = False
-    if not is_macro_key_available(key, macros):
+    if key in macros["macros"].keys():
         for alias in aliases:
             alias = alias.lower()
             if is_macro_key_available(alias, macros):

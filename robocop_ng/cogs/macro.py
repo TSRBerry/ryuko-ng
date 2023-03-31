@@ -108,8 +108,8 @@ class Macro(Cog):
     @commands.command(name="macros", aliases=["ml", "listmacros", "list_macros"])
     async def list_macros(self, ctx: Context):
         macros = get_macros_dict()
-        if len(macros) > 0:
-            macros = [f"- {key}\n" for key in sorted(macros.keys())]
+        if len(macros["macros"]) > 0:
+            macros = [f"- {key}\n" for key in sorted(macros["macros"].keys())]
             message = "📝 **Macros**:\n"
             for macro_key in macros:
                 message += macro_key
