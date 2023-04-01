@@ -89,7 +89,6 @@ class RyujinxReactionRoles(Cog):
                 emoji = f"<{emoji}>"
 
             if type(value) is str:
-
                 description.append(
                     f"{emoji} for __{self.emoji_map.get(x).split('(')[1].split(')')[0]}__"
                 )
@@ -126,7 +125,11 @@ class RyujinxReactionRoles(Cog):
 
                 if self.get_role_from_emoji(emoji_name) is not None:
                     role = self.get_role(emoji_name)
-                    if not user in role.members and not user.bot and type(user) is discord.Member:
+                    if (
+                        not user in role.members
+                        and not user.bot
+                        and type(user) is discord.Member
+                    ):
                         await user.add_roles(role)
                 else:
                     await self.m.clear_reaction(reaction.emoji)
@@ -247,7 +250,6 @@ class RyujinxReactionRoles(Cog):
             emoji_name = self.get_emoji_full_name(payload.emoji)
 
             if self.get_role_from_emoji(emoji_name) is not None:
-
                 guild = discord.utils.find(
                     lambda guild: guild.id == payload.guild_id, self.bot.guilds
                 )
