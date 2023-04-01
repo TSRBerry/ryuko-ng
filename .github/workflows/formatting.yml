@@ -1,0 +1,49 @@
+name: Check formatting
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: write
+
+jobs:
+  black:
+    name: Python Black
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install black
+        run: pip install black
+
+      - name: Configure git
+        run: |
+          git config --global user.name github-actions[bot]
+          git config --global user.email 41898282+github-actions[bot]@users.noreply.github.com
+
+      - name: Run black
+        run: python -m black .
+
+      - name: Check if files have been modified
+        id: mod_check
+        run: |
+          [[ $(git status -s | wc -l) -le 1 ]] \
+          && echo "is-dirty=false" >> "$GITHUB_OUTPUT" \
+          || echo "is-dirty=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push changes
+        if: steps.mod_check.outputs.is-dirty == 'true'
+        run: |
+          git add .
+          git commit -m "Apply black formatting"
+          git push
+
