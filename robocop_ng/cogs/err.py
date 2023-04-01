@@ -98,7 +98,6 @@ class Err(Cog):
         Usage: .serr/.nxerr/.err <Error Code>"""
 
         if self.switch_re.match(err) or err.startswith("0x"):  # Switch
-
             if err.startswith("0x"):
                 err = err[2:]
                 errcode = int(err, 16)

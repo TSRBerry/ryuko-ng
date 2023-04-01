@@ -190,7 +190,8 @@ class Logs(Cog):
             # Show a message embed
             embed = discord.Embed(description=regd)
             embed.set_author(
-                name=message.author.display_name, icon_url=str(message.author.display_avatar)
+                name=message.author.display_name,
+                icon_url=str(message.author.display_avatar),
             )
 
             await spy_channel.send(msg, embed=embed)

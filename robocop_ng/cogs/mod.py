@@ -730,9 +730,7 @@ class Mod(Cog):
                     avatar_url = str(message.author.display_avatar)
 
                 # set the embed message author to original author
-                embedMessage.set_author(
-                    name=message.author, icon_url=avatar_url
-                )
+                embedMessage.set_author(name=message.author, icon_url=avatar_url)
                 # if message has attachments add them
                 if message.attachments:
                     for i in message.attachments:
