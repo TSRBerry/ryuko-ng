@@ -5,7 +5,13 @@ from discord.ext import commands
 from discord.ext.commands import Cog, Context, BucketType
 
 from robocop_ng.helpers.checks import check_if_staff
-from robocop_ng.helpers.macros import get_macro, add_macro, edit_macro, remove_macro, get_macros
+from robocop_ng.helpers.macros import (
+    get_macro,
+    add_macro,
+    edit_macro,
+    remove_macro,
+    get_macros,
+)
 
 
 class Macro(Cog):
@@ -20,7 +26,9 @@ class Macro(Cog):
                 else:
                     await ctx.send(text)
             else:
-                await ctx.send(f"{ctx.author.mention}: The macro '{key}' doesn't exist.")
+                await ctx.send(
+                    f"{ctx.author.mention}: The macro '{key}' doesn't exist."
+                )
 
     @commands.check(check_if_staff)
     @commands.command(name="macroadd", aliases=["ma", "addmacro", "add_macro"])
@@ -39,9 +47,18 @@ class Macro(Cog):
             await ctx.send(f"Error: Macro '{key}' not found.")
 
     @commands.check(check_if_staff)
-    @commands.command(name="macroremove", aliases=[
-        "mr", "md", "removemacro", "remove_macro", "macrodel", "delmacro", "delete_macro"
-    ])
+    @commands.command(
+        name="macroremove",
+        aliases=[
+            "mr",
+            "md",
+            "removemacro",
+            "remove_macro",
+            "macrodel",
+            "delmacro",
+            "delete_macro",
+        ],
+    )
     async def remove_macro(self, ctx: Context, key: str):
         if remove_macro(key):
             await ctx.send(f"Macro '{key}' removed!")
