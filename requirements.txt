@@ -1,7 +1,7 @@
 aiohttp==3.8.1; python_version >= "3.6"
 aiosignal==1.2.0; python_version >= "3.6" and python_full_version >= "3.8.0"
 async-timeout==4.0.2; python_version >= "3.6" and python_full_version >= "3.8.0"
-attrs==22.1.0; python_version >= "3.6" and python_full_version >= "3.8.0"
+attrs==22.2.0; python_version >= "3.6" and python_full_version >= "3.8.0"
 cffi==1.15.1; python_version >= "3.6"
 charset-normalizer==2.1.0; python_full_version >= "3.8.0" and python_version >= "3.6"
 cryptography==37.0.4; python_version >= "3.6"
