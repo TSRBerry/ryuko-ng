@@ -36,7 +36,9 @@ def get_macros_dict() -> dict[str, dict[str, Union[list[str], str]]]:
     return {"macros": {}, "aliases": {}}
 
 
-def is_macro_key_available(key: str, macros: dict[str, dict[str, Union[list[str], str]]] = None) -> bool:
+def is_macro_key_available(
+    key: str, macros: dict[str, dict[str, Union[list[str], str]]] = None
+) -> bool:
     if macros is None:
         macros = get_macros_dict()
     if key in macros["macros"].keys():

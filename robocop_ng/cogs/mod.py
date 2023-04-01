@@ -47,7 +47,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
+                target = ctx.channel.fetch_message(
+                    ctx.message.reference.message_id
+                ).author
         # Hedge-proofing the code
         if target == ctx.author:
             return await ctx.send("You can't do mod actions on yourself.")
@@ -139,7 +141,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
+                target = ctx.channel.fetch_message(
+                    ctx.message.reference.message_id
+                ).author
         # Hedge-proofing the code
         if target == ctx.author:
             return await ctx.send("You can't do mod actions on yourself.")
@@ -207,7 +211,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
+                target = ctx.channel.fetch_message(
+                    ctx.message.reference.message_id
+                ).author
         # Hedge-proofing the code
         if target == ctx.author:
             if target.id == 181627658520625152:
@@ -277,7 +283,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
+                target = ctx.channel.fetch_message(
+                    ctx.message.reference.message_id
+                ).author
         # Hedge-proofing the code
         if target == ctx.author:
             if target.id == 181627658520625152:
@@ -517,7 +525,9 @@ class Mod(Cog):
     @commands.guild_only()
     @commands.check(check_if_staff)
     @commands.command()
-    async def approve(self, ctx, target: Optional[discord.Member], role: str = "community"):
+    async def approve(
+        self, ctx, target: Optional[discord.Member], role: str = "community"
+    ):
         """Add a role to a user (default: community), staff only."""
         if role not in config.named_roles:
             return await ctx.send(
@@ -530,7 +540,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
+                target = ctx.channel.fetch_message(
+                    ctx.message.reference.message_id
+                ).author
 
         log_channel = self.bot.get_channel(config.modlog_channel)
         target_role = ctx.guild.get_role(config.named_roles[role])
@@ -551,7 +563,9 @@ class Mod(Cog):
     @commands.guild_only()
     @commands.check(check_if_staff)
     @commands.command(aliases=["unapprove"])
-    async def revoke(self, ctx, target: Optional[discord.Member], role: str = "community"):
+    async def revoke(
+        self, ctx, target: Optional[discord.Member], role: str = "community"
+    ):
         """Remove a role from a user (default: community), staff only."""
         if role not in config.named_roles:
             return await ctx.send(
@@ -564,7 +578,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
+                target = ctx.channel.fetch_message(
+                    ctx.message.reference.message_id
+                ).author
 
         log_channel = self.bot.get_channel(config.modlog_channel)
         target_role = ctx.guild.get_role(config.named_roles[role])
@@ -608,7 +624,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
+                target = ctx.channel.fetch_message(
+                    ctx.message.reference.message_id
+                ).author
         # Hedge-proofing the code
         if target == ctx.author:
             return await ctx.send("You can't do mod actions on yourself.")
@@ -693,7 +711,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(ctx.message.reference.message_id).author
+                target = ctx.channel.fetch_message(
+                    ctx.message.reference.message_id
+                ).author
 
         try:
             if nick:

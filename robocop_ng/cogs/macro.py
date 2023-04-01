@@ -29,7 +29,9 @@ class Macro(Cog):
                     await ctx.send(f"{target.mention}:\n{text}")
                 else:
                     if ctx.message.reference is not None:
-                        await ctx.send(text, reference=ctx.message.reference, mention_author=True)
+                        await ctx.send(
+                            text, reference=ctx.message.reference, mention_author=True
+                        )
                     else:
                         await ctx.send(text)
             else:
@@ -52,7 +54,9 @@ class Macro(Cog):
             await ctx.send("Error: You need to add at least one alias.")
         else:
             if add_aliases(existing_key, list(new_keys)):
-                await ctx.send(f"Added {len(new_keys)} aliases to macro '{existing_key}'!")
+                await ctx.send(
+                    f"Added {len(new_keys)} aliases to macro '{existing_key}'!"
+                )
             else:
                 await ctx.send(f"Error: No new and unique aliases found.")
 
@@ -65,17 +69,31 @@ class Macro(Cog):
             await ctx.send(f"Error: Macro '{key}' not found.")
 
     @commands.check(check_if_staff)
-    @commands.command(name="aliasremove", aliases=[
-        "aliasdelete", "delalias", "aliasdel", "removealias", "remove_alias", "delete_alias"
-    ])
-    async def remove_alias_macro(self, ctx: Context, existing_key: str, *remove_keys: str):
+    @commands.command(
+        name="aliasremove",
+        aliases=[
+            "aliasdelete",
+            "delalias",
+            "aliasdel",
+            "removealias",
+            "remove_alias",
+            "delete_alias",
+        ],
+    )
+    async def remove_alias_macro(
+        self, ctx: Context, existing_key: str, *remove_keys: str
+    ):
         if len(remove_keys) == 0:
             await ctx.send("Error: You need to remove at least one alias.")
         else:
             if remove_aliases(existing_key, list(remove_keys)):
-                await ctx.send(f"Removed {len(remove_keys)} aliases from macro '{existing_key}'!")
+                await ctx.send(
+                    f"Removed {len(remove_keys)} aliases from macro '{existing_key}'!"
+                )
             else:
-                await ctx.send(f"Error: None of the specified aliases were found for macro '{existing_key}'.")
+                await ctx.send(
+                    f"Error: None of the specified aliases were found for macro '{existing_key}'."
+                )
 
     @commands.check(check_if_staff)
     @commands.command(
