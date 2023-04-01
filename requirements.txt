@@ -18,4 +18,4 @@ pyjwt==2.4.0; python_version >= "3.6"
 python-dateutil==2.8.2; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.3.0")
 six==1.16.0; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.3.0"
 uritemplate==4.1.1; python_version >= "3.6"
-yarl==1.8.1; python_version >= "3.7" and python_full_version >= "3.8.0"
+yarl==1.8.2; python_version >= "3.7" and python_full_version >= "3.8.0"
