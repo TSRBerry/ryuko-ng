@@ -675,7 +675,7 @@ class Mod(Cog):
             chan_msg += (
                 "Please add an explanation below. In the future"
                 ", it is recommended to use "
-                "`.warn <user> [reason]`."
+                "`.hackwarn <user> [reason]`."
             )
 
         chan_msg += f"\n🔗 __Jump__: <{ctx.message.jump_url}>"
