@@ -47,7 +47,7 @@ wanted_jsons = [
     "data/userlog.json",
     "data/invites.json",
     "data/macros.json",
-    "data/persistent_roles.json"
+    "data/persistent_roles.json",
 ]
 
 intents = discord.Intents.all()
@@ -170,7 +170,7 @@ async def on_command_error(ctx, error):
             "to run this command in the current channel."
         )
     elif isinstance(error, commands.CommandInvokeError) and (
-            "Cannot send messages to this user" in error_text
+        "Cannot send messages to this user" in error_text
     ):
         return await ctx.send(
             f"{ctx.author.mention}: I can't DM you.\n"
@@ -198,8 +198,8 @@ async def on_command_error(ctx, error):
         # and if said commands get used, add a specific notice.
         if ctx.command.name in ಠ_ಠ:
             help_text = (
-                    "This probably means that user left (or already got kicked/banned).\n"
-                    + help_text
+                "This probably means that user left (or already got kicked/banned).\n"
+                + help_text
             )
 
         return await ctx.send(
@@ -223,7 +223,7 @@ async def on_message(message):
     # an allowed command
     welcome_allowed = ["reset", "kick", "ban", "warn"]
     if message.channel.id == config.welcome_channel and not any(
-            cmd in message.content for cmd in welcome_allowed
+        cmd in message.content for cmd in welcome_allowed
     ):
         return
 
