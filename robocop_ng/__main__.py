@@ -257,9 +257,23 @@ for wanted_json in wanted_jsons:
 
 async def main():
     async with bot:
+        if len(config.guild_whitelist) == 1:
+
+            invite_url = discord.utils.oauth_url(
+                config.client_id,
+                guild=discord.Object(config.guild_whitelist[0]),
+                disable_guild_select=True
+            )
+        else:
+            invite_url = discord.utils.oauth_url(config.client_id)
+
+        log.info(
+            f"\n------\nInvite URL: {invite_url}\n------\n"
+        )
+
         for cog in config.initial_cogs:
             try:
-                await bot.load_extension(cog)
+                await bot.load_extension(f"robocop_ng.{cog}")
             except Exception as e:
                 log.exception(f"Failed to load cog {cog}:", e)
         await bot.start(config.token)

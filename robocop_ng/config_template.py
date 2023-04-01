@@ -3,6 +3,7 @@ import hashlib
 
 # Basic bot config, insert your token here, update description if you want
 prefixes = [".", "!"]
+client_id = 0
 token = "token-goes-here"
 bot_description = "Robocop-NG, the moderation bot of ReSwitched."
 
