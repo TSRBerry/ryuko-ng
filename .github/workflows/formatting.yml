@@ -12,6 +12,7 @@ jobs:
   black:
     name: Python Black
     runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
 
     steps:
       - uses: actions/checkout@v3
@@ -46,4 +47,13 @@ jobs:
           git add .
           git commit -m "Apply black formatting"
           git push
+
+  fork-black:
+    name: Python Black
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name != github.repository
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: psf/black@stable
 
