@@ -2,6 +2,7 @@ import datetime
 import math
 import platform
 import random
+from typing import Optional
 
 import discord
 from discord.ext import commands
@@ -28,42 +29,87 @@ class Meme(Cog):
 
     @commands.check(check_if_staff_or_ot)
     @commands.command(hidden=True, name="warm")
-    async def warm_member(self, ctx, user: discord.Member):
+    async def warm_member(self, ctx, user: Optional[discord.Member]):
         """Warms a user :3"""
-        celsius = random.randint(15, 100)
-        fahrenheit = self.c_to_f(celsius)
-        kelvin = self.c_to_k(celsius)
-        await ctx.send(
-            f"{user.mention} warmed."
-            f" User is now {celsius}°C "
-            f"({fahrenheit}°F, {kelvin}K)."
-        )
+        if user is None and ctx.message.reference is None:
+            celsius = random.randint(15, 20)
+            fahrenheit = self.c_to_f(celsius)
+            kelvin = self.c_to_k(celsius)
+            await ctx.send(
+                f"{ctx.author.mention} tries to warm themself."
+                f" User is now {celsius}°C "
+                f"({fahrenheit}°F, {kelvin}K).\n"
+                "You might have more success warming someone else :3"
+            )
+        else:
+            if user is None:
+                user = ctx.channel.fetch_message(
+                    ctx.message.reference.message_id
+                ).author
+
+            celsius = random.randint(15, 100)
+            fahrenheit = self.c_to_f(celsius)
+            kelvin = self.c_to_k(celsius)
+            await ctx.send(
+                f"{user.mention} warmed."
+                f" User is now {celsius}°C "
+                f"({fahrenheit}°F, {kelvin}K)."
+            )
 
     @commands.check(check_if_staff_or_ot)
     @commands.command(hidden=True, name="chill", aliases=["cold"])
-    async def chill_member(self, ctx, user: discord.Member):
+    async def chill_member(self, ctx, user: Optional[discord.Member]):
         """Chills a user >:3"""
-        celsius = random.randint(-50, 15)
-        fahrenheit = self.c_to_f(celsius)
-        kelvin = self.c_to_k(celsius)
-        await ctx.send(
-            f"{user.mention} chilled."
-            f" User is now {celsius}°C "
-            f"({fahrenheit}°F, {kelvin}K)."
-        )
+        if user is None and ctx.message.reference is None:
+            celsius = random.randint(-75, 10)
+            fahrenheit = self.c_to_f(celsius)
+            kelvin = self.c_to_k(celsius)
+            await ctx.send(
+                f"{ctx.author.mention} chills themself."
+                f" User is now {celsius}°C "
+                f"({fahrenheit}°F, {kelvin}K).\n"
+                "🧊 Don't be so hard on yourself. 😔"
+            )
+        else:
+            if user is None:
+                user = ctx.channel.fetch_message(
+                    ctx.message.reference.message_id
+                ).author
+            celsius = random.randint(-50, 15)
+            fahrenheit = self.c_to_f(celsius)
+            kelvin = self.c_to_k(celsius)
+            await ctx.send(
+                f"{user.mention} chilled."
+                f" User is now {celsius}°C "
+                f"({fahrenheit}°F, {kelvin}K)."
+            )
 
     @commands.check(check_if_staff_or_ot)
     @commands.command(hidden=True, aliases=["thank", "reswitchedgold"])
-    async def gild(self, ctx, user: discord.Member):
+    async def gild(self, ctx, user: Optional[discord.Member]):
         """Gives a star to a user"""
-        await ctx.send(f"{user.mention} gets a :star:, yay!")
+        if user is None and ctx.message.reference is None:
+            await ctx.send(f"No stars for you, {ctx.author.mention}!")
+        else:
+            if user is None:
+                user = ctx.channel.fetch_message(
+                    ctx.message.reference.message_id
+                ).author
+            await ctx.send(f"{user.mention} gets a :star:, yay!")
 
     @commands.check(check_if_staff_or_ot)
     @commands.command(
         hidden=True, aliases=["reswitchedsilver", "silv3r", "reswitchedsilv3r"]
     )
-    async def silver(self, ctx, user: discord.Member):
+    async def silver(self, ctx, user: Optional[discord.Member]):
         """Gives a user ReSwitched Silver™"""
+        if user is None and ctx.message.reference is None:
+            await ctx.send(f"{ctx.author.mention}, you can't reward yourself.")
+        else:
+            if user is None:
+                user = ctx.channel.fetch_message(
+                    ctx.message.reference.message_id
+                ).author
         embed = discord.Embed(
             title="ReSwitched Silver™!",
             description=f"Here's your ReSwitched Silver™," f"{user.mention}!",
@@ -131,23 +177,30 @@ class Meme(Cog):
 
     @commands.check(check_if_staff_or_ot)
     @commands.command(hidden=True, name="bam")
-    async def bam_member(self, ctx, target: discord.Member):
+    async def bam_member(self, ctx, target: Optional[discord.Member]):
         """Bams a user owo"""
-        if target == ctx.author:
-            if target.id == 181627658520625152:
+        if target is None and ctx.message.reference is None:
+            await ctx.reply("https://tenor.com/view/bonk-gif-26414884")
+        else:
+            if target is None:
+                target = ctx.channel.fetch_message(
+                    ctx.message.reference.message_id
+                ).author
+            if target == ctx.author:
+                if target.id == 181627658520625152:
+                    return await ctx.send(
+                        "https://cdn.discordapp.com/attachments/286612533757083648/403080855402315796/rehedge.PNG"
+                    )
+                return await ctx.send("hedgeberg#7337 is ̶n͢ow b̕&̡.̷ 👍̡")
+            elif target == self.bot.user:
                 return await ctx.send(
-                    "https://cdn.discordapp.com/attachments/286612533757083648/403080855402315796/rehedge.PNG"
+                    f"I'm sorry {ctx.author.mention}, I'm afraid I can't do that."
                 )
-            return await ctx.send("hedgeberg#7337 is ̶n͢ow b̕&̡.̷ 👍̡")
-        elif target == self.bot.user:
-            return await ctx.send(
-                f"I'm sorry {ctx.author.mention}, I'm afraid I can't do that."
-            )
 
-        safe_name = await commands.clean_content(escape_markdown=True).convert(
-            ctx, str(target)
-        )
-        await ctx.send(f"{safe_name} is ̶n͢ow b̕&̡.̷ 👍̡")
+            safe_name = await commands.clean_content(escape_markdown=True).convert(
+                ctx, str(target)
+            )
+            await ctx.send(f"{safe_name} is ̶n͢ow b̕&̡.̷ 👍̡")
 
     @commands.command(hidden=True)
     async def memebercount(self, ctx):

@@ -227,7 +227,7 @@ class LogFileReader(Cog):
 2) Ensure the following default logs are enabled: `Info`, `Warning`, `Error`, `Guest` and `Stub`.
 3) Start a game up.
 4) Play until your issue occurs.
-5) Upload the latest log file which is larger than 2KB.""",
+5) Upload the latest log file which is larger than 3KB.""",
                     inline=False,
                 )
             else:
