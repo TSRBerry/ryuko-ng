@@ -32,9 +32,9 @@ class ModTimed(Cog):
             )
         else:
             if target is None:
-                target = (await ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
-                )).author
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
+                ).author
         # Hedge-proofing the code
         if target == ctx.author:
             return await ctx.send("You can't do mod actions on yourself.")
@@ -108,9 +108,9 @@ class ModTimed(Cog):
             )
         else:
             if target is None:
-                target = (await ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
-                )).author
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
+                ).author
         # Hedge-proofing the code
         if target == ctx.author:
             return await ctx.send("You can't do mod actions on yourself.")

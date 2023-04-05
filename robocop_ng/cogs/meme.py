@@ -43,9 +43,9 @@ class Meme(Cog):
             )
         else:
             if user is None:
-                user = (await ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
-                )).author
+                user = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
+                ).author
 
             celsius = random.randint(15, 100)
             fahrenheit = self.c_to_f(celsius)
@@ -72,9 +72,9 @@ class Meme(Cog):
             )
         else:
             if user is None:
-                user = (await ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
-                )).author
+                user = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
+                ).author
             celsius = random.randint(-50, 15)
             fahrenheit = self.c_to_f(celsius)
             kelvin = self.c_to_k(celsius)
@@ -92,9 +92,9 @@ class Meme(Cog):
             await ctx.send(f"No stars for you, {ctx.author.mention}!")
         else:
             if user is None:
-                user = (await ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
-                )).author
+                user = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
+                ).author
             await ctx.send(f"{user.mention} gets a :star:, yay!")
 
     @commands.check(check_if_staff_or_ot)
@@ -107,9 +107,9 @@ class Meme(Cog):
             await ctx.send(f"{ctx.author.mention}, you can't reward yourself.")
         else:
             if user is None:
-                user = (await ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
-                )).author
+                user = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
+                ).author
         embed = discord.Embed(
             title="ReSwitched Silver™!",
             description=f"Here's your ReSwitched Silver™," f"{user.mention}!",
@@ -183,9 +183,9 @@ class Meme(Cog):
             await ctx.reply("https://tenor.com/view/bonk-gif-26414884")
         else:
             if target is None:
-                target = (await ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
-                )).author
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
+                ).author
             if target == ctx.author:
                 if target.id == 181627658520625152:
                     return await ctx.send(

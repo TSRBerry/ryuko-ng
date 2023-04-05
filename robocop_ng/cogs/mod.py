@@ -46,9 +46,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = (await ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
-                )).author
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
+                ).author
         # Hedge-proofing the code
         if target == ctx.author:
             return await ctx.send("You can't do mod actions on yourself.")
@@ -140,9 +140,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = (await ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
-                )).author
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
+                ).author
         # Hedge-proofing the code
         if target == ctx.author:
             return await ctx.send("You can't do mod actions on yourself.")
@@ -210,9 +210,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = (await ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
-                )).author
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
+                ).author
         # Hedge-proofing the code
         if target == ctx.author:
             if target.id == 181627658520625152:
@@ -282,9 +282,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = (await ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
-                )).author
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
+                ).author
         # Hedge-proofing the code
         if target == ctx.author:
             if target.id == 181627658520625152:
@@ -540,9 +540,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = (await ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
-                )).author
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
+                ).author
 
         log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         target_role = ctx.guild.get_role(self.bot.config.named_roles[role])
@@ -579,9 +579,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = (await ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
-                )).author
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
+                ).author
 
         log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         target_role = ctx.guild.get_role(self.bot.config.named_roles[role])
@@ -625,9 +625,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = (await ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
-                )).author
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
+                ).author
         # Hedge-proofing the code
         if target == ctx.author:
             return await ctx.send("You can't do mod actions on yourself.")
@@ -779,9 +779,9 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = (await ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
-                )).author
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
+                ).author
 
         try:
             if nick:
