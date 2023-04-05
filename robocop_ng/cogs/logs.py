@@ -133,7 +133,7 @@ class Logs(Cog):
         await member.add_roles(*roles)
 
         # Real hell zone.
-        warns = get_userlog()
+        warns = get_userlog(self.bot)
         try:
             if len(warns[str(member.id)]["warns"]) == 0:
                 await log_channel.send(msg)
