@@ -1,21 +1,26 @@
 import json
 import math
+import os
 
 
-def get_crontab():
-    with open("data/robocronptab.json", "r") as f:
+def get_crontab_path(bot):
+    return os.path.join(bot.state_dir, "data/robocronptab.json")
+
+
+def get_crontab(bot):
+    with open(get_crontab_path(bot), "r") as f:
         return json.load(f)
 
 
-def set_crontab(contents):
-    with open("data/robocronptab.json", "w") as f:
+def set_crontab(bot, contents):
+    with open(get_crontab_path(bot), "w") as f:
         f.write(contents)
 
 
-def add_job(job_type, job_name, job_details, timestamp):
+def add_job(bot, job_type, job_name, job_details, timestamp):
     timestamp = str(math.floor(timestamp))
     job_name = str(job_name)
-    ctab = get_crontab()
+    ctab = get_crontab(bot)
 
     if job_type not in ctab:
         ctab[job_type] = {}
@@ -24,14 +29,14 @@ def add_job(job_type, job_name, job_details, timestamp):
         ctab[job_type][timestamp] = {}
 
     ctab[job_type][timestamp][job_name] = job_details
-    set_crontab(json.dumps(ctab))
+    set_crontab(bot, json.dumps(ctab))
 
 
-def delete_job(timestamp, job_type, job_name):
+def delete_job(bot, timestamp, job_type, job_name):
     timestamp = str(timestamp)
     job_name = str(job_name)
-    ctab = get_crontab()
+    ctab = get_crontab(bot)
 
     del ctab[job_type][timestamp][job_name]
 
-    set_crontab(json.dumps(ctab))
+    set_crontab(bot, json.dumps(ctab))

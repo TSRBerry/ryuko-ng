@@ -5,8 +5,6 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
-
 
 class Lists(Cog):
     """
@@ -19,7 +17,7 @@ class Lists(Cog):
     # Helpers
 
     def check_if_target_is_staff(self, target):
-        return any(r.id in config.staff_role_ids for r in target.roles)
+        return any(r.id in self.bot.config.staff_role_ids for r in target.roles)
 
     def is_edit(self, emoji):
         return str(emoji)[0] == "✏" or str(emoji)[0] == "📝"
@@ -84,7 +82,7 @@ class Lists(Cog):
         fields = embeds[0].fields
         for field in fields:
             if field.name == "Message ID":
-                files_channel = self.bot.get_channel(config.list_files_channel)
+                files_channel = self.bot.get_channel(self.bot.config.list_files_channel)
                 file_message = await files_channel.fetch_message(int(field.value))
                 await file_message.delete()
 
@@ -133,7 +131,7 @@ class Lists(Cog):
             await ctx.send(f"Number must be greater than 0.")
             return
 
-        if channel.id not in config.list_channels:
+        if channel.id not in self.bot.config.list_channels:
             await ctx.send(f"{channel.mention} is not a list channel.")
             return
 
@@ -160,7 +158,7 @@ class Lists(Cog):
         await self.bot.wait_until_ready()
 
         # We only care about reactions in Rules, and Support FAQ
-        if payload.channel_id not in config.list_channels:
+        if payload.channel_id not in self.bot.config.list_channels:
             return
 
         channel = self.bot.get_channel(payload.channel_id)
@@ -201,8 +199,8 @@ class Lists(Cog):
                 await r.remove(user)
 
         # When editing we want to provide the user a copy of the raw text.
-        if self.is_edit(reaction.emoji) and config.list_files_channel != 0:
-            files_channel = self.bot.get_channel(config.list_files_channel)
+        if self.is_edit(reaction.emoji) and self.bot.config.list_files_channel != 0:
+            files_channel = self.bot.get_channel(self.bot.config.list_files_channel)
             file = discord.File(
                 io.BytesIO(message.content.encode("utf-8")),
                 filename=f"{message.id}.txt",
@@ -221,7 +219,7 @@ class Lists(Cog):
         await self.bot.wait_until_ready()
 
         # We only care about reactions in Rules, and Support FAQ
-        if payload.channel_id not in config.list_channels:
+        if payload.channel_id not in self.bot.config.list_channels:
             return
 
         channel = self.bot.get_channel(payload.channel_id)
@@ -232,7 +230,7 @@ class Lists(Cog):
             return
 
         # We want to remove the embed we added.
-        if self.is_edit(payload.emoji) and config.list_files_channel != 0:
+        if self.is_edit(payload.emoji) and self.bot.config.list_files_channel != 0:
             await self.clean_up_raw_text_file_message(message)
 
     @Cog.listener()
@@ -240,7 +238,7 @@ class Lists(Cog):
         await self.bot.wait_until_ready()
 
         # We only care about messages in Rules, and Support FAQ
-        if message.channel.id not in config.list_channels:
+        if message.channel.id not in self.bot.config.list_channels:
             return
 
         # We don"t care about messages from bots.
@@ -252,7 +250,7 @@ class Lists(Cog):
             await message.delete()
             return
 
-        log_channel = self.bot.get_channel(config.log_channel)
+        log_channel = self.bot.get_channel(self.bot.config.log_channel)
         channel = message.channel
         content = message.content
         user = message.author
@@ -300,7 +298,7 @@ class Lists(Cog):
         targeted_message = targeted_reaction.message
 
         if self.is_edit(targeted_reaction):
-            if config.list_files_channel != 0:
+            if self.bot.config.list_files_channel != 0:
                 await self.clean_up_raw_text_file_message(targeted_message)
             await targeted_message.edit(content=content)
             await targeted_reaction.remove(user)

@@ -22,11 +22,11 @@ class RolePersistence(Cog):
                 save_roles.append(role.id)
 
         if len(save_roles) > 0:
-            add_user_roles(payload.user.id, save_roles)
+            add_user_roles(self.bot, payload.user.id, save_roles)
 
     @Cog.listener()
     async def on_member_join(self, member: Member):
-        user_roles = get_user_roles(member.id)
+        user_roles = get_user_roles(self.bot, member.id)
         if len(user_roles) > 0:
             user_roles = [
                 member.guild.get_role(int(role))

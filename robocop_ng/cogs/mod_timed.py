@@ -5,7 +5,6 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
 from robocop_ng.helpers.checks import check_if_staff
 from robocop_ng.helpers.restrictions import add_restriction
 from robocop_ng.helpers.robocronp import add_job
@@ -17,7 +16,7 @@ class ModTimed(Cog):
         self.bot = bot
 
     def check_if_target_is_staff(self, target):
-        return any(r.id in config.staff_role_ids for r in target.roles)
+        return any(r.id in self.bot.config.staff_role_ids for r in target.roles)
 
     @commands.guild_only()
     @commands.bot_has_permissions(ban_members=True)
@@ -49,6 +48,7 @@ class ModTimed(Cog):
         )
 
         userlog(
+            self.bot,
             target.id,
             ctx.author,
             f"{reason} (Timed, until " f"{duration_text})",
@@ -89,9 +89,9 @@ class ModTimed(Cog):
                 " as the reason is automatically sent to the user."
             )
 
-        add_job("unban", target.id, {"guild": ctx.guild.id}, expiry_timestamp)
+        add_job(self.bot, "unban", target.id, {"guild": ctx.guild.id}, expiry_timestamp)
 
-        log_channel = self.bot.get_channel(config.log_channel)
+        log_channel = self.bot.get_channel(self.bot.config.log_channel)
         await log_channel.send(chan_message)
         await ctx.send(f"{safe_name} is now b&. " f"It will expire {duration_text}. 👍")
 
@@ -126,6 +126,7 @@ class ModTimed(Cog):
         )
 
         userlog(
+            self.bot,
             target.id,
             ctx.author,
             f"{reason} (Timed, until " f"{duration_text})",
@@ -149,7 +150,7 @@ class ModTimed(Cog):
             # or has DMs disabled
             pass
 
-        mute_role = ctx.guild.get_role(config.mute_role)
+        mute_role = ctx.guild.get_role(self.bot.config.mute_role)
 
         await target.add_roles(mute_role, reason=str(ctx.author))
 
@@ -167,14 +168,16 @@ class ModTimed(Cog):
                 " as the reason is automatically sent to the user."
             )
 
-        add_job("unmute", target.id, {"guild": ctx.guild.id}, expiry_timestamp)
+        add_job(
+            self.bot, "unmute", target.id, {"guild": ctx.guild.id}, expiry_timestamp
+        )
 
-        log_channel = self.bot.get_channel(config.log_channel)
+        log_channel = self.bot.get_channel(self.bot.config.log_channel)
         await log_channel.send(chan_message)
         await ctx.send(
             f"{target.mention} can no longer speak. " f"It will expire {duration_text}."
         )
-        add_restriction(target.id, config.mute_role)
+        add_restriction(self.bot, target.id, self.bot.config.mute_role)
 
 
 async def setup(bot):

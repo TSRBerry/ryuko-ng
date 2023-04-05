@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
 from robocop_ng.helpers.checks import check_if_staff
 
 
@@ -18,10 +17,10 @@ class RyujinxVerification(Cog):
     async def on_member_join(self, member):
         await self.bot.wait_until_ready()
 
-        if member.guild.id not in config.guild_whitelist:
+        if member.guild.id not in self.bot.config.guild_whitelist:
             return
 
-        join_channel = self.bot.get_channel(config.welcome_channel)
+        join_channel = self.bot.get_channel(self.bot.config.welcome_channel)
 
         if join_channel is not None:
             await join_channel.send(
@@ -32,14 +31,14 @@ class RyujinxVerification(Cog):
 
     async def process_message(self, message):
         """Process the verification process"""
-        if message.channel.id == config.welcome_channel:
+        if message.channel.id == self.bot.config.welcome_channel:
             # Assign common stuff into variables to make stuff less of a mess
             mcl = message.content.lower()
 
             # Get the role we will give in case of success
-            success_role = message.guild.get_role(config.participant_role)
+            success_role = message.guild.get_role(self.bot.config.participant_role)
 
-            if config.verification_string == mcl:
+            if self.bot.config.verification_string == mcl:
                 await message.author.add_roles(success_role)
                 await message.delete()
 
@@ -69,22 +68,22 @@ class RyujinxVerification(Cog):
     async def on_member_join(self, member):
         await self.bot.wait_until_ready()
 
-        if member.guild.id not in config.guild_whitelist:
+        if member.guild.id not in self.bot.config.guild_whitelist:
             return
 
-        join_channel = self.bot.get_channel(config.welcome_channel)
+        join_channel = self.bot.get_channel(self.bot.config.welcome_channel)
 
         if join_channel is not None:
-            await join_channel.send(config.join_message.format(member))
+            await join_channel.send(self.bot.config.join_message.format(member))
 
     @commands.check(check_if_staff)
     @commands.command()
     async def reset(self, ctx, limit: int = 100, force: bool = False):
         """Wipes messages and pastes the welcome message again. Staff only."""
-        if ctx.message.channel.id != config.welcome_channel and not force:
+        if ctx.message.channel.id != self.bot.config.welcome_channel and not force:
             await ctx.send(
                 f"This command is limited to"
-                f" <#{config.welcome_channel}>, unless forced."
+                f" <#{self.bot.config.welcome_channel}>, unless forced."
             )
             return
         await self.do_reset(ctx.channel, ctx.author.mention, limit)

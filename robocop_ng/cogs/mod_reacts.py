@@ -4,7 +4,6 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
 from robocop_ng.helpers.checks import check_if_staff
 
 
@@ -24,7 +23,7 @@ class ModReact(Cog):
         limit: int = 50,
     ):
         """Clears reacts from a given user in the given channel, staff only."""
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         if not channel:
             channel = ctx.channel
         count = 0
@@ -49,7 +48,7 @@ class ModReact(Cog):
         self, ctx, *, limit: int = 50, channel: discord.TextChannel = None
     ):
         """Clears all reacts in a given channel, staff only. Use with care."""
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         if not channel:
             channel = ctx.channel
         count = 0

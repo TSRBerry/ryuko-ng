@@ -9,4 +9,4 @@ COPY . .
 
 WORKDIR /usr/src/app
 
-CMD [ "python", "-m", "robocop_ng" ]
+CMD [ "python", "-m", "robocop_ng", "/state" ]

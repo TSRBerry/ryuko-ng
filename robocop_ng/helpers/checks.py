@@ -1,4 +1,4 @@
-from robocop_ng import config
+import config
 
 
 def check_if_staff(ctx):

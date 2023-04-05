@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
 from robocop_ng.helpers.checks import check_if_staff
 
 
@@ -24,7 +23,7 @@ class Lockdown(Cog):
             pass
 
     async def unlock_for_staff(self, channel: discord.TextChannel, issuer):
-        for role in config.staff_role_ids:
+        for role in self.bot.config.staff_role_ids:
             await self.set_sendmessage(channel, role, True, issuer)
 
     @commands.guild_only()
@@ -36,15 +35,15 @@ class Lockdown(Cog):
         Defaults to current channel."""
         if not channel:
             channel = ctx.channel
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
 
         roles = None
-        for key, lockdown_conf in config.lockdown_configs.items():
+        for key, lockdown_conf in self.bot.config.lockdown_configs.items():
             if channel.id in lockdown_conf["channels"]:
                 roles = lockdown_conf["roles"]
 
         if roles is None:
-            roles = config.lockdown_configs["default"]["roles"]
+            roles = self.bot.config.lockdown_configs["default"]["roles"]
 
         for role in roles:
             await self.set_sendmessage(channel, role, False, ctx.author)
@@ -76,15 +75,15 @@ class Lockdown(Cog):
         """Unlocks speaking in current channel, staff only."""
         if not channel:
             channel = ctx.channel
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
 
         roles = None
-        for key, lockdown_conf in config.lockdown_configs.items():
+        for key, lockdown_conf in self.bot.config.lockdown_configs.items():
             if channel.id in lockdown_conf["channels"]:
                 roles = lockdown_conf["roles"]
 
         if roles is None:
-            roles = config.lockdown_configs["default"]["roles"]
+            roles = self.bot.config.lockdown_configs["default"]["roles"]
 
         await self.unlock_for_staff(channel, ctx.author)
 

@@ -2,12 +2,14 @@ import json
 import os
 from typing import Optional, Union
 
-MACROS_FILE = "data/macros.json"
+
+def get_crontab_path(bot):
+    return os.path.join(bot.state_dir, "data/macros.json")
 
 
-def get_macros_dict() -> dict[str, dict[str, Union[list[str], str]]]:
-    if os.path.isfile(MACROS_FILE):
-        with open(MACROS_FILE, "r") as f:
+def get_macros_dict(bot) -> dict[str, dict[str, Union[list[str], str]]]:
+    if os.path.isfile(get_crontab_path(bot)):
+        with open(get_crontab_path(bot), "r") as f:
             macros = json.load(f)
 
         # Migration code
@@ -37,10 +39,10 @@ def get_macros_dict() -> dict[str, dict[str, Union[list[str], str]]]:
 
 
 def is_macro_key_available(
-    key: str, macros: dict[str, dict[str, Union[list[str], str]]] = None
+    bot, key: str, macros: dict[str, dict[str, Union[list[str], str]]] = None
 ) -> bool:
     if macros is None:
-        macros = get_macros_dict()
+        macros = get_macros_dict(bot)
     if key in macros["macros"].keys():
         return False
     for aliases in macros["aliases"].values():
@@ -49,13 +51,13 @@ def is_macro_key_available(
     return True
 
 
-def set_macros(contents: dict[str, dict[str, Union[list[str], str]]]):
-    with open(MACROS_FILE, "w") as f:
+def set_macros(bot, contents: dict[str, dict[str, Union[list[str], str]]]):
+    with open(get_crontab_path(bot), "w") as f:
         json.dump(contents, f)
 
 
-def get_macro(key: str) -> Optional[str]:
-    macros = get_macros_dict()
+def get_macro(bot, key: str) -> Optional[str]:
+    macros = get_macros_dict(bot)
     key = key.lower()
     if key in macros["macros"].keys():
         return macros["macros"][key]
@@ -65,43 +67,43 @@ def get_macro(key: str) -> Optional[str]:
     return None
 
 
-def add_macro(key: str, message: str) -> bool:
-    macros = get_macros_dict()
+def add_macro(bot, key: str, message: str) -> bool:
+    macros = get_macros_dict(bot)
     key = key.lower()
-    if is_macro_key_available(key, macros):
+    if is_macro_key_available(bot, key, macros):
         macros["macros"][key] = message
-        set_macros(macros)
+        set_macros(bot, macros)
         return True
     return False
 
 
-def add_aliases(key: str, aliases: list[str]) -> bool:
-    macros = get_macros_dict()
+def add_aliases(bot, key: str, aliases: list[str]) -> bool:
+    macros = get_macros_dict(bot)
     key = key.lower()
     success = False
     if key in macros["macros"].keys():
         for alias in aliases:
             alias = alias.lower()
-            if is_macro_key_available(alias, macros):
+            if is_macro_key_available(bot, alias, macros):
                 macros["aliases"][key].append(alias)
                 success = True
         if success:
-            set_macros(macros)
+            set_macros(bot, macros)
     return success
 
 
-def edit_macro(key: str, message: str) -> bool:
-    macros = get_macros_dict()
+def edit_macro(bot, key: str, message: str) -> bool:
+    macros = get_macros_dict(bot)
     key = key.lower()
     if key in macros["macros"].keys():
         macros["macros"][key] = message
-        set_macros(macros)
+        set_macros(bot, macros)
         return True
     return False
 
 
-def remove_aliases(key: str, aliases: list[str]) -> bool:
-    macros = get_macros_dict()
+def remove_aliases(bot, key: str, aliases: list[str]) -> bool:
+    macros = get_macros_dict(bot)
     key = key.lower()
     success = False
     if key not in macros["aliases"].keys():
@@ -114,25 +116,25 @@ def remove_aliases(key: str, aliases: list[str]) -> bool:
                 del macros["aliases"][key]
             success = True
     if success:
-        set_macros(macros)
+        set_macros(bot, macros)
     return success
 
 
-def remove_macro(key: str) -> bool:
-    macros = get_macros_dict()
+def remove_macro(bot, key: str) -> bool:
+    macros = get_macros_dict(bot)
     key = key.lower()
     if key in macros["macros"].keys():
         del macros["macros"][key]
-        set_macros(macros)
+        set_macros(bot, macros)
         return True
     return False
 
 
-def clear_aliases(key: str) -> bool:
-    macros = get_macros_dict()
+def clear_aliases(bot, key: str) -> bool:
+    macros = get_macros_dict(bot)
     key = key.lower()
     if key in macros["macros"].keys() and key in macros["aliases"].keys():
         del macros["aliases"][key]
-        set_macros(macros)
+        set_macros(bot, macros)
         return True
     return False

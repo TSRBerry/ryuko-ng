@@ -5,8 +5,6 @@ import aiohttp
 from discord import Colour, Embed
 from discord.ext.commands import Cog
 
-from robocop_ng import config
-
 logging.basicConfig(
     format="%(asctime)s (%(levelname)s) %(message)s (Line %(lineno)d)",
     level=logging.INFO,
@@ -16,7 +14,7 @@ logging.basicConfig(
 class LogFileReader(Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.bot_log_allowed_channels = config.bot_log_allowed_channels
+        self.bot_log_allowed_channels = self.bot.config.bot_log_allowed_channels
         self.ryujinx_blue = Colour(0x4A90E2)
         self.uploaded_log_info = []
 
@@ -620,14 +618,16 @@ class LogFileReader(Cog):
 
                 is_channel_allowed = False
 
-                for allowed_channel_id in config.bot_log_allowed_channels.values():
+                for (
+                    allowed_channel_id
+                ) in self.bot.config.bot_log_allowed_channels.values():
                     if message.channel.id == allowed_channel_id:
                         is_channel_allowed = True
                         break
 
                 if is_channel_allowed:
                     if re.match(pr_version, self.embed["emu_info"]["ryu_version"]):
-                        pr_version_warning = f"**⚠️ PR build logs should be posted in <#{config.bot_log_allowed_channels['pr-testing']}> if reporting bugs or tests**"
+                        pr_version_warning = f"**⚠️ PR build logs should be posted in <#{self.bot.config.bot_log_allowed_channels['pr-testing']}> if reporting bugs or tests**"
                         self.embed["game_info"]["notes"].append(pr_version_warning)
 
                     if re.match(
@@ -776,13 +776,13 @@ class LogFileReader(Cog):
                         description="\n".join(
                             (
                                 f"Please upload Ryujinx log files to the correct location:\n",
-                                f'<#{config.bot_log_allowed_channels["windows-support"]}>: Windows help and troubleshooting',
-                                f'<#{config.bot_log_allowed_channels["linux-support"]}>: Linux help and troubleshooting',
-                                f'<#{config.bot_log_allowed_channels["macos-support"]}>: macOS help and troubleshooting',
-                                f'<#{config.bot_log_allowed_channels["patreon-support"]}>: Help and troubleshooting for Patreon subscribers',
-                                f'<#{config.bot_log_allowed_channels["development"]}>: Ryujinx development discussion',
-                                f'<#{config.bot_log_allowed_channels["pr-testing"]}>: Discussion of in-progress pull request builds',
-                                f'<#{config.bot_log_allowed_channels["linux-master-race"]}>: Linux support and discussion',
+                                f'<#{self.bot.config.bot_log_allowed_channels["windows-support"]}>: Windows help and troubleshooting',
+                                f'<#{self.bot.config.bot_log_allowed_channels["linux-support"]}>: Linux help and troubleshooting',
+                                f'<#{self.bot.config.bot_log_allowed_channels["macos-support"]}>: macOS help and troubleshooting',
+                                f'<#{self.bot.config.bot_log_allowed_channels["patreon-support"]}>: Help and troubleshooting for Patreon subscribers',
+                                f'<#{self.bot.config.bot_log_allowed_channels["development"]}>: Ryujinx development discussion',
+                                f'<#{self.bot.config.bot_log_allowed_channels["pr-testing"]}>: Discussion of in-progress pull request builds',
+                                f'<#{self.bot.config.bot_log_allowed_channels["linux-master-race"]}>: Linux support and discussion',
                             )
                         ),
                         colour=self.ryujinx_blue,

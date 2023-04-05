@@ -1,7 +1,6 @@
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
 from robocop_ng.helpers.checks import check_if_staff
 
 
@@ -13,10 +12,10 @@ class ModReswitched(Cog):
     @commands.command(aliases=["pingmods", "summonmods"])
     async def pingmod(self, ctx):
         """Pings mods, only use when there's an emergency."""
-        can_ping = any(r.id in config.pingmods_allow for r in ctx.author.roles)
+        can_ping = any(r.id in self.bot.config.pingmods_allow for r in ctx.author.roles)
         if can_ping:
             await ctx.send(
-                f"<@&{config.pingmods_role}>: {ctx.author.mention} needs assistance."
+                f"<@&{self.bot.config.pingmods_role}>: {ctx.author.mention} needs assistance."
             )
         else:
             await ctx.send(
@@ -28,7 +27,7 @@ class ModReswitched(Cog):
     @commands.command(aliases=["togglemod"])
     async def modtoggle(self, ctx):
         """Toggles your mod role, staff only."""
-        target_role = ctx.guild.get_role(config.modtoggle_role)
+        target_role = ctx.guild.get_role(self.bot.config.modtoggle_role)
 
         if target_role in ctx.author.roles:
             await ctx.author.remove_roles(

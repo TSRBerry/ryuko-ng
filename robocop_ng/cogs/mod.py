@@ -5,7 +5,6 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
 from robocop_ng.helpers.checks import check_if_staff, check_if_bot_manager
 from robocop_ng.helpers.restrictions import add_restriction, remove_restriction
 from robocop_ng.helpers.userlogs import userlog
@@ -16,7 +15,7 @@ class Mod(Cog):
         self.bot = bot
 
     def check_if_target_is_staff(self, target):
-        return any(r.id in config.staff_role_ids for r in target.roles)
+        return any(r.id in self.bot.config.staff_role_ids for r in target.roles)
 
     @commands.guild_only()
     @commands.check(check_if_bot_manager)
@@ -27,7 +26,7 @@ class Mod(Cog):
         await ctx.guild.edit(icon=img_bytes, reason=str(ctx.author))
         await ctx.send(f"Done!")
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         log_msg = (
             f"✏️ **Guild Icon Update**: {ctx.author} changed the guild icon."
             f"\n🔗 __Jump__: <{ctx.message.jump_url}>"
@@ -62,7 +61,7 @@ class Mod(Cog):
                 "I can't mute this user as they're a member of staff."
             )
 
-        userlog(target.id, ctx.author, reason, "mutes", target.name)
+        userlog(self.bot, target.id, ctx.author, reason, "mutes", target.name)
 
         safe_name = await commands.clean_content(escape_markdown=True).convert(
             ctx, str(target)
@@ -79,7 +78,7 @@ class Mod(Cog):
             # or has DMs disabled
             pass
 
-        mute_role = ctx.guild.get_role(config.mute_role)
+        mute_role = ctx.guild.get_role(self.bot.config.mute_role)
 
         await target.add_roles(mute_role, reason=str(ctx.author))
 
@@ -99,10 +98,10 @@ class Mod(Cog):
 
         chan_message += f"\n🔗 __Jump__: <{ctx.message.jump_url}>"
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         await log_channel.send(chan_message)
         await ctx.send(f"{target.mention} can no longer speak.")
-        add_restriction(target.id, config.mute_role)
+        add_restriction(self.bot, target.id, self.bot.config.mute_role)
 
     @commands.guild_only()
     @commands.check(check_if_staff)
@@ -113,7 +112,7 @@ class Mod(Cog):
             ctx, str(target)
         )
 
-        mute_role = ctx.guild.get_role(config.mute_role)
+        mute_role = ctx.guild.get_role(self.bot.config.mute_role)
         await target.remove_roles(mute_role, reason=str(ctx.author))
 
         chan_message = (
@@ -124,10 +123,10 @@ class Mod(Cog):
 
         chan_message += f"\n🔗 __Jump__: <{ctx.message.jump_url}>"
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         await log_channel.send(chan_message)
         await ctx.send(f"{target.mention} can now speak again.")
-        remove_restriction(target.id, config.mute_role)
+        remove_restriction(self.bot, target.id, self.bot.config.mute_role)
 
     @commands.guild_only()
     @commands.bot_has_permissions(kick_members=True)
@@ -156,7 +155,7 @@ class Mod(Cog):
                 "I can't kick this user as they're a member of staff."
             )
 
-        userlog(target.id, ctx.author, reason, "kicks", target.name)
+        userlog(self.bot, target.id, ctx.author, reason, "kicks", target.name)
 
         safe_name = await commands.clean_content(escape_markdown=True).convert(
             ctx, str(target)
@@ -195,7 +194,7 @@ class Mod(Cog):
 
         chan_message += f"\n🔗 __Jump__: <{ctx.message.jump_url}>"
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         await log_channel.send(chan_message)
         await ctx.send(f"👢 {safe_name}, 👍.")
 
@@ -228,7 +227,7 @@ class Mod(Cog):
         elif self.check_if_target_is_staff(target):
             return await ctx.send("I can't ban this user as they're a member of staff.")
 
-        userlog(target.id, ctx.author, reason, "bans", target.name)
+        userlog(self.bot, target.id, ctx.author, reason, "bans", target.name)
 
         safe_name = await commands.clean_content(escape_markdown=True).convert(
             ctx, str(target)
@@ -265,7 +264,7 @@ class Mod(Cog):
 
         chan_message += f"\n🔗 __Jump__: <{ctx.message.jump_url}>"
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         await log_channel.send(chan_message)
         await ctx.send(f"{safe_name} is now b&. 👍")
 
@@ -305,7 +304,7 @@ class Mod(Cog):
                 "Message delete day count needs to be between 0 and 7 days."
             )
 
-        userlog(target.id, ctx.author, reason, "bans", target.name)
+        userlog(self.bot, target.id, ctx.author, reason, "bans", target.name)
 
         safe_name = await commands.clean_content(escape_markdown=True).convert(
             ctx, str(target)
@@ -343,7 +342,7 @@ class Mod(Cog):
 
         chan_message += f"\n🔗 __Jump__: <{ctx.message.jump_url}>"
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         await log_channel.send(chan_message)
         await ctx.send(
             f"{safe_name} is now b&, with {day_count} days of messages deleted. 👍"
@@ -367,7 +366,7 @@ class Mod(Cog):
         elif target_member and self.check_if_target_is_staff(target_member):
             return await ctx.send("I can't ban this user as they're a member of staff.")
 
-        userlog(target, ctx.author, reason, "bans", target_user.name)
+        userlog(self.bot, target, ctx.author, reason, "bans", target_user.name)
 
         safe_name = await commands.clean_content(escape_markdown=True).convert(
             ctx, str(target)
@@ -392,7 +391,7 @@ class Mod(Cog):
 
         chan_message += f"\n🔗 __Jump__: <{ctx.message.jump_url}>"
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         await log_channel.send(chan_message)
         await ctx.send(f"{safe_name} is now b&. 👍")
 
@@ -421,7 +420,7 @@ class Mod(Cog):
                 )
                 continue
 
-            userlog(target, ctx.author, f"massban", "bans", target_user.name)
+            userlog(self.bot, target, ctx.author, f"massban", "bans", target_user.name)
 
             safe_name = await commands.clean_content(escape_markdown=True).convert(
                 ctx, str(target)
@@ -441,7 +440,7 @@ class Mod(Cog):
 
             chan_message += f"\n🔗 __Jump__: <{ctx.message.jump_url}>"
 
-            log_channel = self.bot.get_channel(config.modlog_channel)
+            log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
             await log_channel.send(chan_message)
         await ctx.send(f"All {len(targets_int)} users are now b&. 👍")
 
@@ -474,7 +473,7 @@ class Mod(Cog):
 
         chan_message += f"\n🔗 __Jump__: <{ctx.message.jump_url}>"
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         await log_channel.send(chan_message)
         await ctx.send(f"{safe_name} is now unb&.")
 
@@ -494,7 +493,7 @@ class Mod(Cog):
         elif self.check_if_target_is_staff(target):
             return await ctx.send("I can't ban this user as they're a member of staff.")
 
-        userlog(target.id, ctx.author, reason, "bans", target.name)
+        userlog(self.bot, target.id, ctx.author, reason, "bans", target.name)
 
         safe_name = await commands.clean_content(escape_markdown=True).convert(
             ctx, str(target)
@@ -519,7 +518,7 @@ class Mod(Cog):
 
         chan_message += f"\n🔗 __Jump__: <{ctx.message.jump_url}>"
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         await log_channel.send(chan_message)
 
     @commands.guild_only()
@@ -529,9 +528,10 @@ class Mod(Cog):
         self, ctx, target: Optional[discord.Member], role: str = "community"
     ):
         """Add a role to a user (default: community), staff only."""
-        if role not in config.named_roles:
+        if role not in self.bot.config.named_roles:
             return await ctx.send(
-                "No such role! Available roles: " + ",".join(config.named_roles)
+                "No such role! Available roles: "
+                + ",".join(self.bot.config.named_roles)
             )
 
         if target is None and ctx.message.reference is None:
@@ -544,8 +544,8 @@ class Mod(Cog):
                     ctx.message.reference.message_id
                 ).author
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
-        target_role = ctx.guild.get_role(config.named_roles[role])
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
+        target_role = ctx.guild.get_role(self.bot.config.named_roles[role])
 
         if target_role in target.roles:
             return await ctx.send("Target already has this role.")
@@ -567,9 +567,10 @@ class Mod(Cog):
         self, ctx, target: Optional[discord.Member], role: str = "community"
     ):
         """Remove a role from a user (default: community), staff only."""
-        if role not in config.named_roles:
+        if role not in self.bot.config.named_roles:
             return await ctx.send(
-                "No such role! Available roles: " + ",".join(config.named_roles)
+                "No such role! Available roles: "
+                + ",".join(self.bot.config.named_roles)
             )
 
         if target is None and ctx.message.reference is None:
@@ -582,8 +583,8 @@ class Mod(Cog):
                     ctx.message.reference.message_id
                 ).author
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
-        target_role = ctx.guild.get_role(config.named_roles[role])
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
+        target_role = ctx.guild.get_role(self.bot.config.named_roles[role])
 
         if target_role not in target.roles:
             return await ctx.send("Target doesn't have this role.")
@@ -603,7 +604,7 @@ class Mod(Cog):
     @commands.command(aliases=["clear"])
     async def purge(self, ctx, limit: int, channel: discord.TextChannel = None):
         """Clears a given number of messages, staff only."""
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         if not channel:
             channel = ctx.channel
         await channel.purge(limit=limit)
@@ -639,8 +640,10 @@ class Mod(Cog):
                 "I can't warn this user as they're a member of staff."
             )
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
-        warn_count = userlog(target.id, ctx.author, reason, "warns", target.name)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
+        warn_count = userlog(
+            self.bot, target.id, ctx.author, reason, "warns", target.name
+        )
 
         safe_name = await commands.clean_content(escape_markdown=True).convert(
             ctx, str(target)
@@ -655,7 +658,7 @@ class Mod(Cog):
         if reason:
             msg += " The given reason is: " + reason
         msg += (
-            f"\n\nPlease read the rules in {config.rules_url}. "
+            f"\n\nPlease read the rules in {self.bot.config.rules_url}. "
             f"This is warn #{warn_count}."
         )
         if warn_count == 2:
@@ -718,7 +721,7 @@ class Mod(Cog):
                 "I can't warn this user as they're a member of staff."
             )
 
-        warn_count = userlog(target, ctx.author, reason, "warns", target_user)
+        warn_count = userlog(self.bot, target, ctx.author, reason, "warns", target_user)
 
         safe_name = await commands.clean_content(escape_markdown=True).convert(
             ctx, str(target)
@@ -731,7 +734,14 @@ class Mod(Cog):
         )
 
         if warn_count == 4:
-            userlog(target, ctx.author, "exceeded warn limit", "bans", target_user.name)
+            userlog(
+                self.bot,
+                target,
+                ctx.author,
+                "exceeded warn limit",
+                "bans",
+                target_user.name,
+            )
             chan_msg += "**This resulted in an auto-hackban.**\n"
             await ctx.guild.ban(
                 target_user,
@@ -750,7 +760,7 @@ class Mod(Cog):
 
         chan_msg += f"\n🔗 __Jump__: <{ctx.message.jump_url}>"
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         await log_channel.send(chan_msg)
         await ctx.send(f"{safe_name} warned. " f"User has {warn_count} warning(s).")
 

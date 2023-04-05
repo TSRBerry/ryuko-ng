@@ -1,8 +1,6 @@
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
-
 
 class BasicReswitched(Cog):
     def __init__(self, bot):
@@ -12,7 +10,7 @@ class BasicReswitched(Cog):
     @commands.command()
     async def communitycount(self, ctx):
         """Prints the community member count of the server."""
-        community = ctx.guild.get_role(config.named_roles["community"])
+        community = ctx.guild.get_role(self.bot.config.named_roles["community"])
         await ctx.send(
             f"{ctx.guild.name} has {len(community.members)} community members!"
         )
@@ -21,7 +19,7 @@ class BasicReswitched(Cog):
     @commands.command()
     async def hackercount(self, ctx):
         """Prints the hacker member count of the server."""
-        h4x0r = ctx.guild.get_role(config.named_roles["hacker"])
+        h4x0r = ctx.guild.get_role(self.bot.config.named_roles["hacker"])
         await ctx.send(
             f"{ctx.guild.name} has {len(h4x0r.members)} people with hacker role!"
         )

@@ -6,8 +6,6 @@ import secrets
 
 from discord.ext.commands import Cog
 
-from robocop_ng import config
-
 
 class YubicoOTP(Cog):
     def __init__(self, bot):
@@ -58,7 +56,7 @@ class YubicoOTP(Cog):
         return int("".join(hexconv), 16)
 
     def calc_signature(self, text):
-        key = base64.b64decode(config.yubico_otp_secret)
+        key = base64.b64decode(self.bot.config.yubico_otp_secret)
         signature_bytes = hmac.digest(key, text.encode(), "SHA1")
         return base64.b64encode(signature_bytes).decode()
 
@@ -74,10 +72,10 @@ class YubicoOTP(Cog):
 
     async def validate_yubico_otp(self, otp):
         nonce = secrets.token_hex(15)  # Random number in the valid range
-        params = f"id={config.yubico_otp_client_id}&nonce={nonce}&otp={otp}"
+        params = f"id={self.bot.config.yubico_otp_client_id}&nonce={nonce}&otp={otp}"
 
         # If secret is supplied, sign our request
-        if config.yubico_otp_secret:
+        if self.bot.config.yubico_otp_secret:
             params += "&h=" + self.calc_signature(params)
 
         for api_server in self.api_servers:
@@ -101,7 +99,7 @@ class YubicoOTP(Cog):
             assert datafields["nonce"] == nonce
 
             # Verify signature if secret is present
-            if config.yubico_otp_secret:
+            if self.bot.config.yubico_otp_secret:
                 assert self.validate_response_signature(datafields)
 
             # If we got a success, then return True

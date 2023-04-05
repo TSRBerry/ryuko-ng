@@ -1,4 +1,5 @@
 import json
+import os
 import time
 
 userlog_event_types = {
@@ -10,18 +11,22 @@ userlog_event_types = {
 }
 
 
-def get_userlog():
-    with open("data/userlog.json", "r") as f:
+def get_userlog_path(bot):
+    return os.path.join(bot.state_dir, "data/userlog.json")
+
+
+def get_userlog(bot):
+    with open(get_userlog_path(bot), "r") as f:
         return json.load(f)
 
 
-def set_userlog(contents):
-    with open("data/userlog.json", "w") as f:
+def set_userlog(bot, contents):
+    with open(get_userlog_path(bot), "w") as f:
         f.write(contents)
 
 
-def fill_userlog(userid, uname):
-    userlogs = get_userlog()
+def fill_userlog(bot, userid, uname):
+    userlogs = get_userlog(bot)
     uid = str(userid)
     if uid not in userlogs:
         userlogs[uid] = {
@@ -39,8 +44,8 @@ def fill_userlog(userid, uname):
     return userlogs, uid
 
 
-def userlog(uid, issuer, reason, event_type, uname: str = ""):
-    userlogs, uid = fill_userlog(uid, uname)
+def userlog(bot, uid, issuer, reason, event_type, uname: str = ""):
+    userlogs, uid = fill_userlog(bot, uid, uname)
 
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     log_data = {
@@ -52,13 +57,13 @@ def userlog(uid, issuer, reason, event_type, uname: str = ""):
     if event_type not in userlogs[uid]:
         userlogs[uid][event_type] = []
     userlogs[uid][event_type].append(log_data)
-    set_userlog(json.dumps(userlogs))
+    set_userlog(bot, json.dumps(userlogs))
     return len(userlogs[uid][event_type])
 
 
-def setwatch(uid, issuer, watch_state, uname: str = ""):
-    userlogs, uid = fill_userlog(uid, uname)
+def setwatch(bot, uid, issuer, watch_state, uname: str = ""):
+    userlogs, uid = fill_userlog(bot, uid, uname)
 
     userlogs[uid]["watch"] = watch_state
-    set_userlog(json.dumps(userlogs))
+    set_userlog(bot, json.dumps(userlogs))
     return

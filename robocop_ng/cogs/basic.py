@@ -4,8 +4,6 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
-
 
 class Basic(Cog):
     def __init__(self, bot):
@@ -39,7 +37,9 @@ class Basic(Cog):
     async def robocop(self, ctx):
         """Shows a quick embed with bot info."""
         embed = discord.Embed(
-            title="Robocop-NG", url=config.source_url, description=config.embed_desc
+            title="Robocop-NG",
+            url=self.bot.config.source_url,
+            description=self.bot.config.embed_desc,
         )
 
         embed.set_thumbnail(url=str(self.bot.user.display_avatar))

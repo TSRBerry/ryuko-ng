@@ -1,12 +1,13 @@
 import json
+import os
 import re
 
 import discord
 from discord.ext.commands import Cog
 
-from robocop_ng import config
 from robocop_ng.helpers.checks import check_if_staff
 from robocop_ng.helpers.restrictions import get_user_restrictions
+from robocop_ng.helpers.userlogs import get_userlog
 
 
 class Logs(Cog):
@@ -16,6 +17,7 @@ class Logs(Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.invites_json_path = os.path.join(self.bot.state_dir, "data/invites.json")
         self.invite_re = re.compile(
             r"((discord\.gg|discordapp\.com/" r"+invite)/+[a-zA-Z0-9-]+)", re.IGNORECASE
         )
@@ -23,7 +25,7 @@ class Logs(Cog):
         self.clean_re = re.compile(r"[^a-zA-Z0-9_ ]+", re.UNICODE)
         # All lower case, no spaces, nothing non-alphanumeric
         susp_hellgex = "|".join(
-            [r"\W*".join(list(word)) for word in config.suspect_words]
+            [r"\W*".join(list(word)) for word in self.bot.config.suspect_words]
         )
         self.susp_hellgex = re.compile(susp_hellgex, re.IGNORECASE)
 
@@ -31,15 +33,15 @@ class Logs(Cog):
     async def on_member_join(self, member):
         await self.bot.wait_until_ready()
 
-        if member.guild.id not in config.guild_whitelist:
+        if member.guild.id not in self.bot.config.guild_whitelist:
             return
 
-        log_channel = self.bot.get_channel(config.log_channel)
+        log_channel = self.bot.get_channel(self.bot.config.log_channel)
         # We use this a lot, might as well get it once
         escaped_name = self.bot.escape_message(member)
 
         # Attempt to correlate the user joining with an invite
-        with open("data/invites.json", "r") as f:
+        with open(self.invites_json_path, "r") as f:
             invites = json.load(f)
 
         real_invites = await member.guild.invites()
@@ -74,7 +76,7 @@ class Logs(Cog):
             del invites[id]
 
         # Save invites data.
-        with open("data/invites.json", "w") as f:
+        with open(self.invites_json_path, "w") as f:
             f.write(json.dumps(invites))
 
         # Prepare the invite correlation message
@@ -88,7 +90,7 @@ class Logs(Cog):
 
         # Check if user account is older than 15 minutes
         age = member.joined_at - member.created_at
-        if age < config.min_age:
+        if age < self.bot.config.min_age:
             try:
                 await member.send(
                     f"Your account is too new to "
@@ -126,13 +128,12 @@ class Logs(Cog):
 
         # Handles user restrictions
         # Basically, gives back muted role to users that leave with it.
-        rsts = get_user_restrictions(member.id)
+        rsts = get_user_restrictions(self.bot, member.id)
         roles = [discord.utils.get(member.guild.roles, id=rst) for rst in rsts]
         await member.add_roles(*roles)
 
         # Real hell zone.
-        with open("data/userlog.json", "r") as f:
-            warns = json.load(f)
+        warns = get_userlog()
         try:
             if len(warns[str(member.id)]["warns"]) == 0:
                 await log_channel.send(msg)
@@ -170,16 +171,17 @@ class Logs(Cog):
             msg += f"\n- Has invite: https://{invite[0]}"
             alert = True
 
-        for susp_word in config.suspect_words:
+        for susp_word in self.bot.config.suspect_words:
             if susp_word in cleancont and not any(
-                ok_word in cleancont for ok_word in config.suspect_ignored_words
+                ok_word in cleancont
+                for ok_word in self.bot.config.suspect_ignored_words
             ):
                 msg += f"\n- Contains suspicious word: `{susp_word}`"
                 alert = True
 
         if alert:
             msg += f"\n\nJump: <{message.jump_url}>"
-            spy_channel = self.bot.get_channel(config.spylog_channel)
+            spy_channel = self.bot.get_channel(self.bot.config.spylog_channel)
 
             # Bad Code :tm:, blame retr0id
             message_clean = message.content.replace("*", "").replace("_", "")
@@ -205,13 +207,13 @@ class Logs(Cog):
             f"R11 violating name by {message.author.mention} " f"({message.author.id})."
         )
 
-        spy_channel = self.bot.get_channel(config.spylog_channel)
+        spy_channel = self.bot.get_channel(self.bot.config.spylog_channel)
         await spy_channel.send(msg)
 
     @Cog.listener()
     async def on_message(self, message):
         await self.bot.wait_until_ready()
-        if message.channel.id not in config.spy_channels:
+        if message.channel.id not in self.bot.config.spy_channels:
             return
 
         await self.do_spy(message)
@@ -219,7 +221,7 @@ class Logs(Cog):
     @Cog.listener()
     async def on_message_edit(self, before, after):
         await self.bot.wait_until_ready()
-        if after.channel.id not in config.spy_channels or after.author.bot:
+        if after.channel.id not in self.bot.config.spy_channels or after.author.bot:
             return
 
         # If content is the same, just skip over it
@@ -233,7 +235,7 @@ class Logs(Cog):
         before_content = before.clean_content.replace("`", "`\u200d")
         after_content = after.clean_content.replace("`", "`\u200d")
 
-        log_channel = self.bot.get_channel(config.log_channel)
+        log_channel = self.bot.get_channel(self.bot.config.log_channel)
 
         msg = (
             "📝 **Message edit**: \n"
@@ -252,10 +254,10 @@ class Logs(Cog):
     @Cog.listener()
     async def on_message_delete(self, message):
         await self.bot.wait_until_ready()
-        if message.channel.id not in config.spy_channels or message.author.bot:
+        if message.channel.id not in self.bot.config.spy_channels or message.author.bot:
             return
 
-        log_channel = self.bot.get_channel(config.log_channel)
+        log_channel = self.bot.get_channel(self.bot.config.log_channel)
         msg = (
             "🗑️ **Message delete**: \n"
             f"from {self.bot.escape_message(message.author.name)} "
@@ -274,10 +276,10 @@ class Logs(Cog):
     async def on_member_remove(self, member):
         await self.bot.wait_until_ready()
 
-        if member.guild.id not in config.guild_whitelist:
+        if member.guild.id not in self.bot.config.guild_whitelist:
             return
 
-        log_channel = self.bot.get_channel(config.log_channel)
+        log_channel = self.bot.get_channel(self.bot.config.log_channel)
         msg = (
             f"⬅️ **Leave**: {member.mention} | "
             f"{self.bot.escape_message(member)}\n"
@@ -289,10 +291,10 @@ class Logs(Cog):
     async def on_member_ban(self, guild, member):
         await self.bot.wait_until_ready()
 
-        if guild.id not in config.guild_whitelist:
+        if guild.id not in self.bot.config.guild_whitelist:
             return
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         msg = (
             f"⛔ **Ban**: {member.mention} | "
             f"{self.bot.escape_message(member)}\n"
@@ -304,10 +306,10 @@ class Logs(Cog):
     async def on_member_unban(self, guild, user):
         await self.bot.wait_until_ready()
 
-        if guild.id not in config.guild_whitelist:
+        if guild.id not in self.bot.config.guild_whitelist:
             return
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         msg = (
             f"⚠️ **Unban**: {user.mention} | "
             f"{self.bot.escape_message(user)}\n"
@@ -328,11 +330,11 @@ class Logs(Cog):
     async def on_member_update(self, member_before, member_after):
         await self.bot.wait_until_ready()
 
-        if member_after.guild.id not in config.guild_whitelist:
+        if member_after.guild.id not in self.bot.config.guild_whitelist:
             return
 
         msg = ""
-        log_channel = self.bot.get_channel(config.log_channel)
+        log_channel = self.bot.get_channel(self.bot.config.log_channel)
         if member_before.roles != member_after.roles:
             # role removal
             role_removal = []

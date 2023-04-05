@@ -6,7 +6,6 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
 from robocop_ng.helpers.checks import check_if_bot_manager
 
 
@@ -94,7 +93,7 @@ class Admin(Cog):
 
     async def cog_load_actions(self, cog_name):
         if cog_name == "verification":
-            verif_channel = self.bot.get_channel(config.welcome_channel)
+            verif_channel = self.bot.get_channel(self.bot.config.welcome_channel)
             await self.bot.do_resetalgo(verif_channel, "cog load")
 
     @commands.guild_only()
@@ -109,7 +108,7 @@ class Admin(Cog):
             cogs_to_reload = re.findall(r"cogs/([a-z_]*).py[ ]*\|", git_output)
             for cog in cogs_to_reload:
                 cog_name = "robocop_ng.cogs." + cog
-                if cog_name not in config.initial_cogs:
+                if cog_name not in self.bot.config.initial_cogs:
                     continue
 
                 try:

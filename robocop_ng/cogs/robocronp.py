@@ -5,7 +5,6 @@ import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import Cog
 
-from robocop_ng import config
 from robocop_ng.helpers.checks import check_if_staff
 from robocop_ng.helpers.restrictions import remove_restriction
 from robocop_ng.helpers.robocronp import get_crontab, delete_job
@@ -26,7 +25,7 @@ class Robocronp(Cog):
     async def send_data(self):
         await self.bot.wait_until_ready()
         data_files = [discord.File(fpath) for fpath in self.bot.wanted_jsons]
-        log_channel = await self.bot.get_channel_safe(config.botlog_channel)
+        log_channel = await self.bot.get_channel_safe(self.bot.config.botlog_channel)
         await log_channel.send("Hourly data backups:", files=data_files)
 
     @commands.guild_only()
@@ -34,7 +33,7 @@ class Robocronp(Cog):
     @commands.command()
     async def listjobs(self, ctx):
         """Lists timed robocronp jobs, staff only."""
-        ctab = get_crontab()
+        ctab = get_crontab(self.bot)
         embed = discord.Embed(title=f"Active robocronp jobs")
         for jobtype in ctab:
             for jobtimestamp in ctab[jobtype]:
@@ -59,31 +58,31 @@ class Robocronp(Cog):
         - job name (userid, like 420332322307571713)
 
         You can get all 3 from listjobs command."""
-        delete_job(timestamp, job_type, job_name)
+        delete_job(self.bot, timestamp, job_type, job_name)
         await ctx.send(f"{ctx.author.mention}: Deleted!")
 
     async def do_jobs(self, ctab, jobtype, timestamp):
         await self.bot.wait_until_ready()
-        log_channel = await self.bot.get_channel_safe(config.botlog_channel)
+        log_channel = await self.bot.get_channel_safe(self.bot.config.botlog_channel)
         for job_name in ctab[jobtype][timestamp]:
             try:
                 job_details = ctab[jobtype][timestamp][job_name]
                 if jobtype == "unban":
                     target_user = await self.bot.fetch_user(job_name)
                     target_guild = self.bot.get_guild(job_details["guild"])
-                    delete_job(timestamp, jobtype, job_name)
+                    delete_job(self.bot, timestamp, jobtype, job_name)
                     await target_guild.unban(
                         target_user, reason="Robocronp: Timed ban expired."
                     )
                 elif jobtype == "unmute":
-                    remove_restriction(job_name, config.mute_role)
+                    remove_restriction(self.bot, job_name, self.bot.config.mute_role)
                     target_guild = self.bot.get_guild(job_details["guild"])
                     target_member = target_guild.get_member(int(job_name))
-                    target_role = target_guild.get_role(config.mute_role)
+                    target_role = target_guild.get_role(self.bot.config.mute_role)
                     await target_member.remove_roles(
                         target_role, reason="Robocronp: Timed mute expired."
                     )
-                    delete_job(timestamp, jobtype, job_name)
+                    delete_job(self.bot, timestamp, jobtype, job_name)
                 elif jobtype == "remind":
                     text = job_details["text"]
                     added_on = job_details["added"]
@@ -92,10 +91,10 @@ class Robocronp(Cog):
                         await target.send(
                             f"You asked to be reminded about `{text}` on {added_on}."
                         )
-                    delete_job(timestamp, jobtype, job_name)
+                    delete_job(self.bot, timestamp, jobtype, job_name)
             except:
                 # Don't kill cronjobs if something goes wrong.
-                delete_job(timestamp, jobtype, job_name)
+                delete_job(self.bot, timestamp, jobtype, job_name)
                 await log_channel.send(
                     "Crondo has errored, job deleted: ```"
                     f"{traceback.format_exc()}```"
@@ -103,7 +102,7 @@ class Robocronp(Cog):
 
     async def clean_channel(self, channel_id):
         await self.bot.wait_until_ready()
-        log_channel = await self.bot.get_channel_safe(config.botlog_channel)
+        log_channel = await self.bot.get_channel_safe(self.bot.config.botlog_channel)
         channel = await self.bot.get_channel_safe(channel_id)
         try:
             done_cleaning = False
@@ -125,9 +124,9 @@ class Robocronp(Cog):
     @tasks.loop(minutes=1)
     async def minutely(self):
         await self.bot.wait_until_ready()
-        log_channel = await self.bot.get_channel_safe(config.botlog_channel)
+        log_channel = await self.bot.get_channel_safe(self.bot.config.botlog_channel)
         try:
-            ctab = get_crontab()
+            ctab = get_crontab(self.bot)
             timestamp = time.time()
             for jobtype in ctab:
                 for jobtimestamp in ctab[jobtype]:
@@ -135,7 +134,7 @@ class Robocronp(Cog):
                         await self.do_jobs(ctab, jobtype, jobtimestamp)
 
             # Handle clean channels
-            for clean_channel in config.minutely_clean_channels:
+            for clean_channel in self.bot.config.minutely_clean_channels:
                 await self.clean_channel(clean_channel)
         except:
             # Don't kill cronjobs if something goes wrong.
@@ -146,11 +145,11 @@ class Robocronp(Cog):
     @tasks.loop(hours=1)
     async def hourly(self):
         await self.bot.wait_until_ready()
-        log_channel = await self.bot.get_channel_safe(config.botlog_channel)
+        log_channel = await self.bot.get_channel_safe(self.bot.config.botlog_channel)
         try:
             await self.send_data()
             # Handle clean channels
-            for clean_channel in config.hourly_clean_channels:
+            for clean_channel in self.bot.config.hourly_clean_channels:
                 await self.clean_channel(clean_channel)
         except:
             # Don't kill cronjobs if something goes wrong.
@@ -161,11 +160,13 @@ class Robocronp(Cog):
     @tasks.loop(hours=24)
     async def daily(self):
         await self.bot.wait_until_ready()
-        log_channel = await self.bot.get_channel_safe(config.botlog_channel)
+        log_channel = await self.bot.get_channel_safe(self.bot.config.botlog_channel)
         try:
             # Reset verification and algorithm
-            if "cogs.verification" in config.initial_cogs:
-                verif_channel = await self.bot.get_channel_safe(config.welcome_channel)
+            if "cogs.verification" in self.bot.config.initial_cogs:
+                verif_channel = await self.bot.get_channel_safe(
+                    self.bot.config.welcome_channel
+                )
                 await self.bot.do_resetalgo(verif_channel, "daily robocronp")
         except:
             # Don't kill cronjobs if something goes wrong.

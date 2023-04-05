@@ -7,7 +7,14 @@ import aiohttp
 import discord
 from discord.ext import commands
 
-from robocop_ng import config
+if len(sys.argv[1:]) != 1:
+    sys.stderr.write("usage: <state_dir>")
+    sys.exit(1)
+
+state_dir = os.path.abspath(sys.argv[1])
+sys.path.append(state_dir)
+
+import config
 
 # TODO: check __name__ for __main__ nerd
 
@@ -50,6 +57,11 @@ wanted_jsons = [
     "data/persistent_roles.json",
 ]
 
+for wanted_json_idx in range(len(wanted_jsons)):
+    wanted_jsons[wanted_json_idx] = os.path.join(
+        state_dir, wanted_jsons[wanted_json_idx]
+    )
+
 intents = discord.Intents.all()
 intents.typing = False
 
@@ -61,6 +73,7 @@ bot.help_command = commands.DefaultHelpCommand(dm_help=True)
 bot.log = log
 bot.config = config
 bot.script_name = script_name
+bot.state_dir = state_dir
 bot.wanted_jsons = wanted_jsons
 
 

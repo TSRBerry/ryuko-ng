@@ -4,7 +4,6 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
 from robocop_ng.helpers.checks import check_if_staff
 from robocop_ng.helpers.userlogs import get_userlog, set_userlog, userlog_event_types
 
@@ -22,7 +21,7 @@ class ModUserlog(Cog):
             wanted_events = [event]
         embed = discord.Embed(color=discord.Color.dark_red())
         embed.set_author(name=f"Userlog for {name}")
-        userlog = get_userlog()
+        userlog = get_userlog(self.bot)
 
         if uid not in userlog:
             embed.description = f"There are none!{own_note} (no entry)"
@@ -55,18 +54,18 @@ class ModUserlog(Cog):
         return embed
 
     def clear_event_from_id(self, uid: str, event_type):
-        userlog = get_userlog()
+        userlog = get_userlog(self.bot)
         if uid not in userlog:
             return f"<@{uid}> has no {event_type}!"
         event_count = len(userlog[uid][event_type])
         if not event_count:
             return f"<@{uid}> has no {event_type}!"
         userlog[uid][event_type] = []
-        set_userlog(json.dumps(userlog))
+        set_userlog(self.bot, json.dumps(userlog))
         return f"<@{uid}> no longer has any {event_type}!"
 
     def delete_event_from_id(self, uid: str, idx: int, event_type):
-        userlog = get_userlog()
+        userlog = get_userlog(self.bot)
         if uid not in userlog:
             return f"<@{uid}> has no {event_type}!"
         event_count = len(userlog[uid][event_type])
@@ -85,7 +84,7 @@ class ModUserlog(Cog):
             f"Reason: {event['reason']}",
         )
         del userlog[uid][event_type][idx - 1]
-        set_userlog(json.dumps(userlog))
+        set_userlog(self.bot, json.dumps(userlog))
         return embed
 
     @commands.guild_only()
@@ -137,7 +136,7 @@ class ModUserlog(Cog):
     @commands.command(aliases=["clearwarns"])
     async def clearevent(self, ctx, target: discord.Member, event="warns"):
         """Clears all events of given type for a user, staff only."""
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         msg = self.clear_event_from_id(str(target.id), event)
         safe_name = await commands.clean_content(escape_markdown=True).convert(
             ctx, str(target)
@@ -156,7 +155,7 @@ class ModUserlog(Cog):
     @commands.command(aliases=["clearwarnsid"])
     async def cleareventid(self, ctx, target: int, event="warns"):
         """Clears all events of given type for a userid, staff only."""
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         msg = self.clear_event_from_id(str(target), event)
         await ctx.send(msg)
         msg = (
@@ -171,7 +170,7 @@ class ModUserlog(Cog):
     @commands.command(aliases=["delwarn"])
     async def delevent(self, ctx, target: discord.Member, idx: int, event="warns"):
         """Removes a specific event from a user, staff only."""
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         del_event = self.delete_event_from_id(str(target.id), idx, event)
         event_name = userlog_event_types[event].lower()
         # This is hell.
@@ -195,7 +194,7 @@ class ModUserlog(Cog):
     @commands.command(aliases=["delwarnid"])
     async def deleventid(self, ctx, target: int, idx: int, event="warns"):
         """Removes a specific event from a userid, staff only."""
-        log_channel = self.bot.get_channel(config.modlog_channel)
+        log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
         del_event = self.delete_event_from_id(str(target), idx, event)
         event_name = userlog_event_types[event].lower()
         # This is hell.

@@ -1,7 +1,6 @@
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
 from robocop_ng.helpers.checks import check_if_staff_or_ot
 
 
@@ -16,8 +15,8 @@ class SAR(Cog):
         """Lists self assignable roles."""
         return await ctx.send(
             "Self assignable roles in this guild: "
-            + ",".join(config.self_assignable_roles)
-            + f"\n\nRun `{config.prefixes[0]}iam role_name_goes_here` to get or remove one."
+            + ",".join(self.bot.config.self_assignable_roles)
+            + f"\n\nRun `{self.bot.config.prefixes[0]}iam role_name_goes_here` to get or remove one."
         )
 
     @commands.cooldown(1, 30, type=commands.BucketType.user)
@@ -26,12 +25,12 @@ class SAR(Cog):
     @commands.check(check_if_staff_or_ot)
     async def iam(self, ctx, role: str):
         """Gets you a self assignable role."""
-        if role not in config.self_assignable_roles:
+        if role not in self.bot.config.self_assignable_roles:
             return await ctx.send(
                 "There's no self assignable role with that name. Run .sar to see what you can self assign."
             )
 
-        target_role = ctx.guild.get_role(config.self_assignable_roles[role])
+        target_role = ctx.guild.get_role(self.bot.config.self_assignable_roles[role])
 
         if target_role in ctx.author.roles:
             await ctx.author.remove_roles(target_role, reason=str(ctx.author))

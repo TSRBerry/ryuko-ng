@@ -8,14 +8,13 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
 from robocop_ng.helpers.checks import check_if_staff
 
 
 class Verification(Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.hash_choice = random.choice(config.welcome_hashes)
+        self.hash_choice = random.choice(self.bot.config.welcome_hashes)
 
         # Export reset channel functions
         self.bot.do_reset = self.do_reset
@@ -24,10 +23,10 @@ class Verification(Cog):
     async def do_reset(self, channel, author, limit: int = 100):
         await channel.purge(limit=limit)
 
-        await channel.send(config.welcome_header)
+        await channel.send(self.bot.config.welcome_header)
         rules = [
             "**{}**. {}".format(i, cleandoc(r))
-            for i, r in enumerate(config.welcome_rules, 1)
+            for i, r in enumerate(self.bot.config.welcome_rules, 1)
         ]
         rule_choice = random.randint(2, len(rules))
         hash_choice_str = self.hash_choice.upper()
@@ -35,12 +34,14 @@ class Verification(Cog):
             hash_choice_str += "-512"
         elif hash_choice_str == "BLAKE2S":
             hash_choice_str += "-256"
-        rules[rule_choice - 1] += "\n" + config.hidden_term_line.format(hash_choice_str)
+        rules[rule_choice - 1] += "\n" + self.bot.config.hidden_term_line.format(
+            hash_choice_str
+        )
         msg = (
             f"🗑 **Reset**: {author} cleared {limit} messages " f" in {channel.mention}"
         )
         msg += f"\n💬 __Current challenge location__: under rule {rule_choice}"
-        log_channel = self.bot.get_channel(config.log_channel)
+        log_channel = self.bot.get_channel(self.bot.config.log_channel)
         await log_channel.send(msg)
 
         # find rule that puts us over 2,000 characters, if any
@@ -62,19 +63,19 @@ class Verification(Cog):
             await channel.send(item)
             await asyncio.sleep(1)
 
-        for x in config.welcome_footer:
+        for x in self.bot.config.welcome_footer:
             await channel.send(cleandoc(x))
             await asyncio.sleep(1)
 
     async def do_resetalgo(self, channel, author, limit: int = 100):
         # randomize hash_choice on reset
-        self.hash_choice = random.choice(tuple(config.welcome_hashes))
+        self.hash_choice = random.choice(tuple(self.bot.config.welcome_hashes))
 
         msg = (
             f"📘 **Reset Algorithm**: {author} reset " f"algorithm in {channel.mention}"
         )
         msg += f"\n💬 __Current algorithm__: {self.hash_choice.upper()}"
-        log_channel = self.bot.get_channel(config.log_channel)
+        log_channel = self.bot.get_channel(self.bot.config.log_channel)
         await log_channel.send(msg)
 
         await self.do_reset(channel, author)
@@ -83,10 +84,10 @@ class Verification(Cog):
     @commands.command()
     async def reset(self, ctx, limit: int = 100, force: bool = False):
         """Wipes messages and pastes the welcome message again. Staff only."""
-        if ctx.message.channel.id != config.welcome_channel and not force:
+        if ctx.message.channel.id != self.bot.config.welcome_channel and not force:
             await ctx.send(
                 f"This command is limited to"
-                f" <#{config.welcome_channel}>, unless forced."
+                f" <#{self.bot.config.welcome_channel}>, unless forced."
             )
             return
         await self.do_reset(ctx.channel, ctx.author.mention, limit)
@@ -95,10 +96,10 @@ class Verification(Cog):
     @commands.command()
     async def resetalgo(self, ctx, limit: int = 100, force: bool = False):
         """Resets the verification algorithm and does what reset does. Staff only."""
-        if ctx.message.channel.id != config.welcome_channel and not force:
+        if ctx.message.channel.id != self.bot.config.welcome_channel and not force:
             await ctx.send(
                 f"This command is limited to"
-                f" <#{config.welcome_channel}>, unless forced."
+                f" <#{self.bot.config.welcome_channel}>, unless forced."
             )
             return
 
@@ -109,7 +110,7 @@ class Verification(Cog):
         Not really a rewrite but more of a port
 
         Git blame tells me that I should blame/credit Robin Lambertz"""
-        if message.channel.id == config.welcome_channel:
+        if message.channel.id == self.bot.config.welcome_channel:
             # Assign common stuff into variables to make stuff less of a mess
             member = message.author
             full_name = str(member)
@@ -136,7 +137,7 @@ class Verification(Cog):
                 return await chan.send(snark)
 
             # Get the role we will give in case of success
-            success_role = guild.get_role(config.named_roles["participant"])
+            success_role = guild.get_role(self.bot.config.named_roles["participant"])
 
             # Get a list of stuff we'll allow and will consider close
             allowed_names = [f"@{full_name}", full_name, str(member.id)]
@@ -169,11 +170,13 @@ class Verification(Cog):
                 )
 
             # Detect if the user uses the wrong hash algorithm
-            wrong_hash_algos = list(set(config.welcome_hashes) - {self.hash_choice})
+            wrong_hash_algos = list(
+                set(self.bot.config.welcome_hashes) - {self.hash_choice}
+            )
             for algo in wrong_hash_algos:
                 for name in itertools.chain(allowed_names, close_names):
                     if hashlib.new(algo, name.encode("utf-8")).hexdigest() in mcl:
-                        log_channel = self.bot.get_channel(config.log_channel)
+                        log_channel = self.bot.get_channel(self.bot.config.log_channel)
                         await log_channel.send(
                             f"User {message.author.mention} tried verification with algo {algo} instead of {self.hash_choice}."
                         )

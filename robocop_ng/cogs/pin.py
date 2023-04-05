@@ -5,7 +5,6 @@ from discord.enums import MessageType
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
 from robocop_ng.helpers.checks import check_if_collaborator
 from robocop_ng.helpers.checks import check_if_pin_channel
 
@@ -60,13 +59,13 @@ class Pin(Cog):
         return (data["id"], data["files"]["pinboard.md"]["content"])
 
     async def add_pin_to_pinboard(self, channel, data):
-        if config.github_oauth_token == "":
+        if self.bot.config.github_oauth_token == "":
             # Don't add to gist pinboard if we don't have an oauth token
             return
 
         async with aiohttp.ClientSession() as session:
             gh = gidgethub.aiohttp.GitHubAPI(
-                session, "RoboCop-NG", oauth_token=config.github_oauth_token
+                session, "RoboCop-NG", oauth_token=self.bot.config.github_oauth_token
             )
             (id, content) = await self.get_pinboard(gh, channel)
             content += "- " + data + "\n"
@@ -103,7 +102,7 @@ class Pin(Cog):
             return
 
         # Check that reaction pinning is allowd in this channel
-        if payload.channel_id not in config.allowed_pin_channels:
+        if payload.channel_id not in self.bot.config.allowed_pin_channels:
             return
 
         target_guild = self.bot.get_guild(payload.guild_id)
@@ -112,7 +111,7 @@ class Pin(Cog):
 
         # Check that the user is allowed to reaction-pin
         target_user = target_guild.get_member(payload.user_id)
-        for role in config.staff_role_ids + config.allowed_pin_roles:
+        for role in self.bot.config.staff_role_ids + self.bot.config.allowed_pin_roles:
             if role in [role.id for role in target_user.roles]:
                 target_chan = self.bot.get_channel(payload.channel_id)
                 target_msg = await target_chan.get_message(payload.message_id)

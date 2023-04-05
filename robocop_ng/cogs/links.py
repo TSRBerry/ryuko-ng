@@ -2,8 +2,6 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
-
 
 class Links(Cog):
     """
@@ -38,13 +36,13 @@ class Links(Cog):
     @commands.command(hidden=True, aliases=["guides", "link"])
     async def guide(self, ctx):
         """Link to the guides"""
-        await ctx.send(config.links_guide_text)
+        await ctx.send(self.bot.config.links_guide_text)
 
     @commands.command()
     async def source(self, ctx):
         """Gives link to source code."""
         await ctx.send(
-            f"You can find my source at {config.source_url}. "
+            f"You can find my source at {self.bot.config.source_url}. "
             "Serious PRs and issues welcome!"
         )
 
@@ -55,7 +53,7 @@ class Links(Cog):
             targetuser = ctx.author
         await ctx.send(
             f"{targetuser.mention}: A link to the rules "
-            f"can be found here: {config.rules_url}"
+            f"can be found here: {self.bot.config.rules_url}"
         )
 
     @commands.command()

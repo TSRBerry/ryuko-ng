@@ -17,7 +17,7 @@ class Remind(Cog):
     @commands.command()
     async def remindlist(self, ctx):
         """Lists your reminders."""
-        ctab = get_crontab()
+        ctab = get_crontab(self.bot)
         uid = str(ctx.author.id)
         embed = discord.Embed(title=f"Active robocronp jobs")
         for jobtimestamp in ctab["remind"]:
@@ -61,6 +61,7 @@ class Remind(Cog):
         added_on = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S (UTC)")
 
         add_job(
+            self.bot,
             "remind",
             ctx.author.id,
             {"text": safe_text, "added": added_on},

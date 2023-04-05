@@ -6,7 +6,6 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from robocop_ng import config
 from robocop_ng.helpers.checks import check_if_staff
 
 
@@ -14,10 +13,12 @@ class RyujinxReactionRoles(Cog):
     def __init__(self, bot):
         self.bot = bot
         self.channel_id = (
-            config.reaction_roles_channel_id
+            self.bot.config.reaction_roles_channel_id
         )  # The channel to send the reaction role message. (self-roles channel)
 
-        self.file = "data/reactionroles.json"  # the file to store the required reaction role data. (message id of the RR message.)
+        self.file = os.path.join(
+            self.bot.state_dir, "data/reactionroles.json"
+        )  # the file to store the required reaction role data. (message id of the RR message.)
 
         self.msg_id = None
         self.m = None  # the msg object
@@ -33,7 +34,7 @@ class RyujinxReactionRoles(Cog):
         if emoji_name[0] == "<":
             emoji_name = emoji_name[1:-1]
 
-        if target_role_id in config.staff_role_ids:
+        if target_role_id in self.bot.config.staff_role_ids:
             return await ctx.send("Error: Dangerous role found!")
 
         target_role = ctx.guild.get_role(target_role_id)
@@ -155,7 +156,6 @@ class RyujinxReactionRoles(Cog):
 
     def load_reaction_config(self):
         if not os.path.exists(self.file):
-            self.bot.log.error("HERE?!")
             with open(self.file, "w") as f:
                 json.dump({}, f)
 
