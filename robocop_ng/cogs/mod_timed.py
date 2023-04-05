@@ -32,8 +32,8 @@ class ModTimed(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
                 ).author
         # Hedge-proofing the code
         if target == ctx.author:
@@ -108,8 +108,8 @@ class ModTimed(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
                 ).author
         # Hedge-proofing the code
         if target == ctx.author:

@@ -46,8 +46,8 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
                 ).author
         # Hedge-proofing the code
         if target == ctx.author:
@@ -140,8 +140,8 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
                 ).author
         # Hedge-proofing the code
         if target == ctx.author:
@@ -210,8 +210,8 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
                 ).author
         # Hedge-proofing the code
         if target == ctx.author:
@@ -282,8 +282,8 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
                 ).author
         # Hedge-proofing the code
         if target == ctx.author:
@@ -540,8 +540,8 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
                 ).author
 
         log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
@@ -579,8 +579,8 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
                 ).author
 
         log_channel = self.bot.get_channel(self.bot.config.modlog_channel)
@@ -625,8 +625,8 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
                 ).author
         # Hedge-proofing the code
         if target == ctx.author:
@@ -779,8 +779,8 @@ class Mod(Cog):
             )
         else:
             if target is None:
-                target = ctx.channel.fetch_message(
-                    ctx.message.reference.message_id
+                target = (
+                    await ctx.channel.fetch_message(ctx.message.reference.message_id)
                 ).author
 
         try:
