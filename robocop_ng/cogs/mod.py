@@ -721,7 +721,9 @@ class Mod(Cog):
                 "I can't warn this user as they're a member of staff."
             )
 
-        warn_count = userlog(self.bot, target, ctx.author, reason, "warns", target_user)
+        warn_count = userlog(
+            self.bot, target, ctx.author, reason, "warns", target_user.name
+        )
 
         safe_name = await commands.clean_content(escape_markdown=True).convert(
             ctx, str(target)
