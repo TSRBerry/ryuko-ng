@@ -420,7 +420,7 @@ class LogFileReader(Cog):
                 try:
                     self.embed["game_info"]["game_name"] = (
                         re.search(
-                            r"Loader LoadNca: Application Loaded:\s([^;\n\r]*)",
+                            r"Loader [A-Za-z]*: Application Loaded:\s([^;\n\r]*)",
                             log_file,
                             re.MULTILINE,
                         )
