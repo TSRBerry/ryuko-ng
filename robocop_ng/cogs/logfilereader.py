@@ -7,8 +7,13 @@ from discord.ext import commands
 from discord.ext.commands import Cog, Context
 
 from robocop_ng.helpers.checks import check_if_staff
-from robocop_ng.helpers.disabled_tids import add_disabled_tid, is_tid_valid, remove_disabled_tid, get_disabled_tids, \
-    is_tid_disabled
+from robocop_ng.helpers.disabled_tids import (
+    add_disabled_tid,
+    is_tid_valid,
+    remove_disabled_tid,
+    get_disabled_tids,
+    is_tid_disabled,
+)
 
 logging.basicConfig(
     format="%(asctime)s (%(levelname)s) %(message)s (Line %(lineno)d)",
@@ -24,7 +29,9 @@ class LogFileReader(Cog):
         self.ryujinx_blue = Colour(0x4A90E2)
         self.uploaded_log_info = []
 
-        self.disallowed_roles = [self.bot.config.named_roles[x] for x in self.disallowed_named_roles]
+        self.disallowed_roles = [
+            self.bot.config.named_roles[x] for x in self.disallowed_named_roles
+        ]
 
     async def download_file(self, log_url):
         async with aiohttp.ClientSession() as session:
@@ -695,15 +702,20 @@ class LogFileReader(Cog):
                 pass
 
         if is_tid_blocked():
-            warn_message = await message.reply(f".warn This log contains a blocked title id.")
+            warn_message = await message.reply(
+                f".warn This log contains a blocked title id."
+            )
             await self.bot.invoke(await self.bot.get_context(warn_message))
 
             pirate_role = message.guild.get_role(self.bot.config.named_roles["pirate"])
             message.author.add_roles(pirate_role)
 
-            embed = Embed(title="⛔ Blocked game detected ⛔", colour=Colour(0xff0000),
-                          description="This log contains a blocked title id and has been removed.\n"
-                                      "The user has been warned and the pirate role was applied.")
+            embed = Embed(
+                title="⛔ Blocked game detected ⛔",
+                colour=Colour(0xFF0000),
+                description="This log contains a blocked title id and has been removed.\n"
+                "The user has been warned and the pirate role was applied.",
+            )
             embed.set_footer(text=f"Log uploaded by {author_name}")
 
             await message.delete()
@@ -716,7 +728,9 @@ class LogFileReader(Cog):
         return format_log_embed()
 
     @commands.check(check_if_staff)
-    @commands.command(aliases=["disallow_log_tid", "forbid_log_tid", "block_tid", "blocktid"])
+    @commands.command(
+        aliases=["disallow_log_tid", "forbid_log_tid", "block_tid", "blocktid"]
+    )
     async def disable_log_tid(self, ctx: Context, tid: str, note=""):
         if not is_tid_valid(tid):
             return await ctx.send("The specified TID is invalid.")
@@ -727,7 +741,15 @@ class LogFileReader(Cog):
             return await ctx.send(f"TID '{tid}' is already blocked.")
 
     @commands.check(check_if_staff)
-    @commands.command(aliases=["allow_log_tid", "unblock_log_tid", "unblock_tid", "allow_tid", "unblocktid"])
+    @commands.command(
+        aliases=[
+            "allow_log_tid",
+            "unblock_log_tid",
+            "unblock_tid",
+            "allow_tid",
+            "unblocktid",
+        ]
+    )
     async def enable_log_tid(self, ctx: Context, tid: str):
         if not is_tid_valid(tid):
             return await ctx.send("The specified TID is invalid.")
@@ -738,7 +760,14 @@ class LogFileReader(Cog):
             return await ctx.send(f"TID '{tid}' is not blocked.")
 
     @commands.check(check_if_staff)
-    @commands.command(aliases=["blocked_tids", "listblockedtids", "list_blocked_log_tids", "list_blocked_tids"])
+    @commands.command(
+        aliases=[
+            "blocked_tids",
+            "listblockedtids",
+            "list_blocked_log_tids",
+            "list_blocked_tids",
+        ]
+    )
     async def list_disabled_tids(self, ctx: Context):
         disabled_tids = get_disabled_tids(self.bot)
         message = "**Blocking analysis of the following TIDs:**\n"
@@ -767,10 +796,11 @@ class LogFileReader(Cog):
                 message.channel.id in self.bot_log_allowed_channels.values()
                 and is_ryujinx_log_file
             ):
-
                 for role in message.author.roles:
                     if role.id in self.disallowed_roles:
-                        return await message.channel.send("I'm not allowed to analyse this log.")
+                        return await message.channel.send(
+                            "I'm not allowed to analyse this log."
+                        )
 
                 uploaded_logs_exist = [
                     True for elem in self.uploaded_log_info if filename in elem.values()
