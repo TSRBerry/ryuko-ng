@@ -3,13 +3,13 @@ import os
 from typing import Optional, Union
 
 
-def get_crontab_path(bot):
+def get_macros_path(bot):
     return os.path.join(bot.state_dir, "data/macros.json")
 
 
 def get_macros_dict(bot) -> dict[str, dict[str, Union[list[str], str]]]:
-    if os.path.isfile(get_crontab_path(bot)):
-        with open(get_crontab_path(bot), "r") as f:
+    if os.path.isfile(get_macros_path(bot)):
+        with open(get_macros_path(bot), "r") as f:
             macros = json.load(f)
 
         # Migration code
@@ -31,7 +31,7 @@ def get_macros_dict(bot) -> dict[str, dict[str, Union[list[str], str]]]:
                         del new_macros["macros"][key]
                         duplicate_num += 1
 
-            set_macros(new_macros)
+            set_macros(bot, new_macros)
             return new_macros
 
         return macros
@@ -52,7 +52,7 @@ def is_macro_key_available(
 
 
 def set_macros(bot, contents: dict[str, dict[str, Union[list[str], str]]]):
-    with open(get_crontab_path(bot), "w") as f:
+    with open(get_macros_path(bot), "w") as f:
         json.dump(contents, f)
 
 
