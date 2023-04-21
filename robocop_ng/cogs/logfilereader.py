@@ -3,7 +3,12 @@ import re
 
 import aiohttp
 from discord import Colour, Embed, Message
-from discord.ext.commands import Cog
+from discord.ext import commands
+from discord.ext.commands import Cog, Context
+
+from robocop_ng.helpers.checks import check_if_staff
+from robocop_ng.helpers.disabled_tids import add_disabled_tid, is_tid_valid, remove_disabled_tid, get_disabled_tids, \
+    is_tid_disabled
 
 logging.basicConfig(
     format="%(asctime)s (%(levelname)s) %(message)s (Line %(lineno)d)",
@@ -72,6 +77,20 @@ class LogFileReader(Cog):
         # this regex makes sure that the log text to read starts from the first timestamp, ignoring headers
         log_file_header_regex = re.compile(r"\d{2}:\d{2}:\d{2}\.\d{3}.*", re.DOTALL)
         log_file = re.search(log_file_header_regex, log_file).group(0)
+
+        def is_tid_blocked(log_file=log_file):
+            game_name = re.search(
+                r"Loader [A-Za-z]*: Application Loaded:\s([^;\n\r]*)",
+                log_file,
+                re.MULTILINE,
+            )
+            if game_name is not None and len(game_name.groups()) > 0:
+                game_name = game_name.group(1).rstrip()
+                tid = re.match(r".* \[([a-zA-Z0-9]*)\]", game_name)
+                if tid is not None:
+                    tid = tid.group(1).strip()
+                    return is_tid_disabled(self.bot, tid)
+            return False
 
         def get_hardware_info(log_file=log_file):
             for setting in self.embed["hardware_info"]:
@@ -675,11 +694,57 @@ class LogFileReader(Cog):
             except AttributeError:
                 pass
 
+        if is_tid_blocked():
+            warn_message = await message.reply(f".warn This log contains a blocked title id.")
+            await self.bot.invoke(await self.bot.get_context(warn_message))
+
+            pirate_role = message.guild.get_role(self.bot.config.named_roles["pirate"])
+            message.author.add_roles(pirate_role)
+
+            embed = Embed(title="⛔ Blocked game detected ⛔", colour=Colour(0xff0000),
+                          description="This log contains a blocked title id and has been removed.\n"
+                                      "The user has been warned and the pirate role was applied.")
+            embed.set_footer(text=f"Log uploaded by {author_name}")
+
+            await message.delete()
+            return embed
+
         get_hardware_info()
         get_ryujinx_info()
         game_notes = analyse_log()
 
         return format_log_embed()
+
+    @commands.check(check_if_staff)
+    @commands.command(aliases=["disallow_log_tid", "forbid_log_tid", "block_tid", "blocktid"])
+    async def disable_log_tid(self, ctx: Context, tid: str, note=""):
+        if not is_tid_valid(tid):
+            return await ctx.send("The specified TID is invalid.")
+
+        if add_disabled_tid(self.bot, tid, note):
+            return await ctx.send(f"TID '{tid}' is now blocked!")
+        else:
+            return await ctx.send(f"TID '{tid}' is already blocked.")
+
+    @commands.check(check_if_staff)
+    @commands.command(aliases=["allow_log_tid", "unblock_log_tid", "unblock_tid", "allow_tid", "unblocktid"])
+    async def enable_log_tid(self, ctx: Context, tid: str):
+        if not is_tid_valid(tid):
+            return await ctx.send("The specified TID is invalid.")
+
+        if remove_disabled_tid(self.bot, tid):
+            return await ctx.send(f"TID '{tid}' is now unblocked!")
+        else:
+            return await ctx.send(f"TID '{tid}' is not blocked.")
+
+    @commands.check(check_if_staff)
+    @commands.command(aliases=["blocked_tids", "listblockedtids", "list_blocked_log_tids", "list_blocked_tids"])
+    async def list_disabled_tids(self, ctx: Context):
+        disabled_tids = get_disabled_tids(self.bot)
+        message = "**Blocking analysis of the following TIDs:**\n"
+        for tid, note in disabled_tids.items():
+            message += f"- [{tid.upper()}]: {note}\n" if note != "" else f"- [{tid}]\n"
+        return await ctx.send(message)
 
     @Cog.listener()
     async def on_message(self, message: Message):
