@@ -2,7 +2,7 @@ import logging
 import re
 
 import aiohttp
-from discord import Colour, Embed
+from discord import Colour, Embed, Message
 from discord.ext.commands import Cog
 
 logging.basicConfig(
@@ -15,8 +15,11 @@ class LogFileReader(Cog):
     def __init__(self, bot):
         self.bot = bot
         self.bot_log_allowed_channels = self.bot.config.bot_log_allowed_channels
+        self.disallowed_named_roles = ["pirate"]
         self.ryujinx_blue = Colour(0x4A90E2)
         self.uploaded_log_info = []
+
+        self.disallowed_roles = [self.bot.config.named_roles[x] for x in self.disallowed_named_roles]
 
     async def download_file(self, log_url):
         async with aiohttp.ClientSession() as session:
@@ -679,7 +682,7 @@ class LogFileReader(Cog):
         return format_log_embed()
 
     @Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: Message):
         await self.bot.wait_until_ready()
         if message.author.bot:
             return
@@ -699,6 +702,11 @@ class LogFileReader(Cog):
                 message.channel.id in self.bot_log_allowed_channels.values()
                 and is_ryujinx_log_file
             ):
+
+                for role in message.author.roles:
+                    if role.id in self.disallowed_roles:
+                        return await message.channel.send("I'm not allowed to analyse this log.")
+
                 uploaded_logs_exist = [
                     True for elem in self.uploaded_log_info if filename in elem.values()
                 ]
