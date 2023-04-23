@@ -2,7 +2,7 @@ import logging
 import re
 
 import aiohttp
-from discord import Colour, Embed, Message
+from discord import Colour, Embed, Message, Attachment
 from discord.ext import commands
 from discord.ext.commands import Cog, Context
 
@@ -22,6 +22,17 @@ logging.basicConfig(
 
 
 class LogFileReader(Cog):
+    @staticmethod
+    def is_valid_log(attachment: Attachment) -> tuple[bool, bool]:
+        filename = attachment.filename
+        # Any message over 2000 chars is uploaded as message.txt, so this is accounted for
+        ryujinx_log_file_regex = re.compile(r"^Ryujinx_.*\.log|message\.txt$")
+        log_file = re.compile(r"^.*\.log|.*\.txt$")
+        is_ryujinx_log_file = re.match(ryujinx_log_file_regex, filename) is not None
+        is_log_file = re.match(log_file, filename) is not None
+
+        return is_log_file, is_ryujinx_log_file
+
     def __init__(self, bot):
         self.bot = bot
         self.bot_log_allowed_channels = self.bot.config.bot_log_allowed_channels
@@ -644,6 +655,7 @@ class LogFileReader(Cog):
                 old_mainline_version = re.compile(r"^\d\.\d\.(\d){4}$")
                 pr_version = re.compile(r"^\d\.\d\.\d\+([a-f]|\d){7}$")
                 ldn_version = re.compile(r"^\d\.\d\.\d\-ldn\d+\.\d+(?:\.\d+|$)")
+                mac_version = re.compile(r"^\d\.\d\.\d\-macos\d+\.\d+(?:\.\d+|$)")
 
                 is_channel_allowed = False
 
@@ -674,6 +686,7 @@ class LogFileReader(Cog):
                         or re.match(
                             old_mainline_version, self.embed["emu_info"]["ryu_version"]
                         )
+                        or re.match(mac_version, self.embed["emu_info"]["ryu_version"])
                         or re.match(ldn_version, self.embed["emu_info"]["ryu_version"])
                         or re.match(pr_version, self.embed["emu_info"]["ryu_version"])
                         or re.match("Unknown", self.embed["emu_info"]["ryu_version"])
@@ -775,95 +788,115 @@ class LogFileReader(Cog):
             message += f"- [{tid.upper()}]: {note}\n" if note != "" else f"- [{tid}]\n"
         return await ctx.send(message)
 
+    async def analyse_log_message(self, message: Message, attachment_index=0):
+        author_id = message.author.id
+        author_mention = message.author.mention
+        filename = message.attachments[attachment_index].filename
+        filesize = message.attachments[attachment_index].size
+        # Any message over 2000 chars is uploaded as message.txt, so this is accounted for
+        log_file_link = message.jump_url
+
+        for role in message.author.roles:
+            if role.id in self.disallowed_roles:
+                return await message.channel.send(
+                    "I'm not allowed to analyse this log."
+                )
+
+        uploaded_logs_exist = [
+            True for elem in self.uploaded_log_info if filename in elem.values()
+        ]
+        if not any(uploaded_logs_exist):
+            reply_message = await message.channel.send("Log detected, parsing...")
+            try:
+                embed = await self.log_file_read(message)
+                if "Ryujinx_" in filename:
+                    self.uploaded_log_info.append(
+                        {
+                            "filename": filename,
+                            "file_size": filesize,
+                            "link": log_file_link,
+                            "author": author_id,
+                        }
+                    )
+                    # Avoid duplicate log file analysis, at least temporarily; keep track of the last few filenames of uploaded logs
+                    # this should help support channels not be flooded with too many log files
+                    # fmt: off
+                    self.uploaded_log_info = self.uploaded_log_info[-5:]
+                    # fmt: on
+                return await reply_message.edit(content=None, embed=embed)
+            except UnicodeDecodeError:
+                return await message.channel.send(
+                    content=author_mention,
+                    embed=Embed(
+                        description=f"This log file appears to be invalid. Please re-check and re-upload your log file.",
+                        colour=self.ryujinx_blue,
+                    ),
+                )
+            except Exception as error:
+                await reply_message.edit(
+                    content=f"Error: Couldn't parse log; parser threw `{type(error).__name__}` exception."
+                )
+                print(logging.warning(error))
+        else:
+            duplicate_log_file = next(
+                (
+                    elem
+                    for elem in self.uploaded_log_info
+                    if elem["filename"] == filename
+                    and elem["file_size"] == filesize
+                    and elem["author"] == author_id
+                ),
+                None,
+            )
+            await message.channel.send(
+                content=author_mention,
+                embed=Embed(
+                    description=f"The log file `{filename}` appears to be a duplicate [already uploaded here]({duplicate_log_file['link']}). Please upload a more recent file.",
+                    colour=self.ryujinx_blue,
+                ),
+            )
+
+    @commands.check(check_if_staff)
+    @commands.command(
+        aliases=["analyselog", "analyse_log", "analyze", "analyzelog", "analyze_log"]
+    )
+    async def analyse(self, ctx: Context, attachment_number=1):
+        await ctx.message.delete()
+        if ctx.message.reference is not None:
+            message = await ctx.fetch_message(ctx.message.reference.message_id)
+            if len(message.attachments) >= attachment_number:
+                attachment = message.attachments[attachment_number - 1]
+                is_log_file, _ = self.is_valid_log(attachment)
+
+                if is_log_file:
+                    return await self.analyse_log_message(
+                        message, attachment_number - 1
+                    )
+                else:
+                    return await ctx.send(
+                        f"The attached log file '{attachment.filename}' is not valid.",
+                        reference=ctx.message.reference,
+                    )
+
+        return await ctx.send(
+            "Please use `.analyse` as a reply to a message with an attached log file."
+        )
+
     @Cog.listener()
     async def on_message(self, message: Message):
         await self.bot.wait_until_ready()
         if message.author.bot:
             return
-        try:
-            author_id = message.author.id
-            author_mention = message.author.mention
-            filename = message.attachments[0].filename
-            filesize = message.attachments[0].size
-            # Any message over 2000 chars is uploaded as message.txt, so this is accounted for
-            ryujinx_log_file_regex = re.compile(r"^Ryujinx_.*\.log|message\.txt$")
-            log_file = re.compile(r"^.*\.log|.*\.txt$")
-            log_file_link = message.jump_url
-            is_ryujinx_log_file = re.match(ryujinx_log_file_regex, filename)
-            is_log_file = re.match(log_file, filename)
+        for attachment in message.attachments:
+            is_log_file, is_ryujinx_log_file = self.is_valid_log(attachment)
 
-            if (
-                message.channel.id in self.bot_log_allowed_channels.values()
-                and is_ryujinx_log_file
-            ):
-                for role in message.author.roles:
-                    if role.id in self.disallowed_roles:
-                        return await message.channel.send(
-                            "I'm not allowed to analyse this log."
-                        )
-
-                uploaded_logs_exist = [
-                    True for elem in self.uploaded_log_info if filename in elem.values()
-                ]
-                if not any(uploaded_logs_exist):
-                    reply_message = await message.channel.send(
-                        "Log detected, parsing..."
-                    )
-                    try:
-                        embed = await self.log_file_read(message)
-                        if "Ryujinx_" in filename:
-                            self.uploaded_log_info.append(
-                                {
-                                    "filename": filename,
-                                    "file_size": filesize,
-                                    "link": log_file_link,
-                                    "author": author_id,
-                                }
-                            )
-                            # Avoid duplicate log file analysis, at least temporarily; keep track of the last few filenames of uploaded logs
-                            # this should help support channels not be flooded with too many log files
-                            # fmt: off
-                            self.uploaded_log_info = self.uploaded_log_info[-5:]
-                            # fmt: on
-                        return await reply_message.edit(content=None, embed=embed)
-                    except UnicodeDecodeError:
-                        return await message.channel.send(
-                            content=author_mention,
-                            embed=Embed(
-                                description=f"This log file appears to be invalid. Please re-check and re-upload your log file.",
-                                colour=self.ryujinx_blue,
-                            ),
-                        )
-                    except Exception as error:
-                        await reply_message.edit(
-                            content=f"Error: Couldn't parse log; parser threw `{type(error).__name__}` exception."
-                        )
-                        print(logging.warning(error))
-                else:
-                    duplicate_log_file = next(
-                        (
-                            elem
-                            for elem in self.uploaded_log_info
-                            if elem["filename"] == filename
-                            and elem["file_size"] == filesize
-                            and elem["author"] == author_id
-                        ),
-                        None,
-                    )
-                    await message.channel.send(
-                        content=author_mention,
-                        embed=Embed(
-                            description=f"The log file `{filename}` appears to be a duplicate [already uploaded here]({duplicate_log_file['link']}). Please upload a more recent file.",
-                            colour=self.ryujinx_blue,
-                        ),
-                    )
-            elif (
-                is_log_file
-                and not is_ryujinx_log_file
-                and message.channel.id in self.bot_log_allowed_channels.values()
-            ):
+            if message.channel.id in self.bot_log_allowed_channels.values():
+                return await self.analyse_log_message(
+                    message, message.attachments.index(attachment)
+                )
+            elif is_log_file and not is_ryujinx_log_file:
                 return await message.channel.send(
-                    content=author_mention,
+                    content=message.author.mention,
                     embed=Embed(
                         description=f"Your file does not match the Ryujinx log format. Please check your file.",
                         colour=self.ryujinx_blue,
@@ -874,7 +907,7 @@ class LogFileReader(Cog):
                 and not message.channel.id in self.bot_log_allowed_channels.values()
             ):
                 return await message.author.send(
-                    content=author_mention,
+                    content=message.author.mention,
                     embed=Embed(
                         description="\n".join(
                             (
@@ -885,14 +918,11 @@ class LogFileReader(Cog):
                                 f'<#{self.bot.config.bot_log_allowed_channels["patreon-support"]}>: Help and troubleshooting for Patreon subscribers',
                                 f'<#{self.bot.config.bot_log_allowed_channels["development"]}>: Ryujinx development discussion',
                                 f'<#{self.bot.config.bot_log_allowed_channels["pr-testing"]}>: Discussion of in-progress pull request builds',
-                                f'<#{self.bot.config.bot_log_allowed_channels["linux-master-race"]}>: Linux support and discussion',
                             )
                         ),
                         colour=self.ryujinx_blue,
                     ),
                 )
-        except IndexError:
-            pass
 
 
 async def setup(bot):
