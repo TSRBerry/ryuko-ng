@@ -55,6 +55,7 @@ wanted_jsons = [
     "data/invites.json",
     "data/macros.json",
     "data/persistent_roles.json",
+    "data/disabled_tids.json",
 ]
 
 for wanted_json_idx in range(len(wanted_jsons)):
@@ -77,10 +78,10 @@ bot.state_dir = state_dir
 bot.wanted_jsons = wanted_jsons
 
 
-async def get_channel_safe(self, id):
-    res = self.get_channel(id)
+async def get_channel_safe(self, channel_id: int):
+    res = self.get_channel(channel_id)
     if res is None:
-        res = await self.fetch_channel(id)
+        res = await self.fetch_channel(channel_id)
 
     return res
 

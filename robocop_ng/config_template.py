@@ -1,5 +1,5 @@
-import hashlib
 import datetime
+import hashlib
 
 # Basic bot config, insert your token here, update description if you want
 prefixes = [".", "!"]
@@ -69,6 +69,7 @@ named_roles = {
     "community": 420010997877833731,
     "hacker": 364508795038072833,
     "participant": 434353085926866946,
+    "pirate": 0,
 }
 
 # The bot manager and staff roles
