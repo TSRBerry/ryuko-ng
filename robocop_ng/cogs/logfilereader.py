@@ -832,19 +832,20 @@ class LogFileReader(Cog):
                     self.uploaded_log_info = self.uploaded_log_info[-5:]
                     # fmt: on
                 return await reply_message.edit(content=None, embed=embed)
-            except UnicodeDecodeError:
-                return await message.channel.send(
+            except UnicodeDecodeError as error:
+                await reply_message.edit(
                     content=author_mention,
                     embed=Embed(
                         description="This log file appears to be invalid. Please re-check and re-upload your log file.",
                         colour=self.ryujinx_blue,
                     ),
                 )
+                logging.warning(error)
             except Exception as error:
                 await reply_message.edit(
                     content=f"Error: Couldn't parse log; parser threw `{type(error).__name__}` exception."
                 )
-                print(logging.warning(error))
+                logging.warning(error)
         else:
             duplicate_log_file = next(
                 (
@@ -898,20 +899,12 @@ class LogFileReader(Cog):
         for attachment in message.attachments:
             is_log_file, is_ryujinx_log_file = self.is_valid_log_name(attachment)
 
-            if message.channel.id in self.bot_log_allowed_channels.values():
+            if is_log_file and is_ryujinx_log_file and message.channel.id in self.bot_log_allowed_channels.values():
                 return await self.analyse_log_message(
                     message, message.attachments.index(attachment)
                 )
-            elif is_log_file and not is_ryujinx_log_file:
-                return await message.channel.send(
-                    content=message.author.mention,
-                    embed=Embed(
-                        description=f"Your file does not match the Ryujinx log format. Please check your file.",
-                        colour=self.ryujinx_blue,
-                    ),
-                )
             elif (
-                is_log_file
+                is_log_file and is_ryujinx_log_file
                 and message.channel.id not in self.bot_log_allowed_channels.values()
             ):
                 return await message.author.send(
