@@ -25,8 +25,7 @@ class LogFileReader(Cog):
     @staticmethod
     def is_valid_log_name(attachment: Attachment) -> tuple[bool, bool]:
         filename = attachment.filename
-        # Any message over 2000 chars is uploaded as message.txt, so this is accounted for
-        ryujinx_log_file_regex = re.compile(r"^Ryujinx_.*\.log|message\.txt$")
+        ryujinx_log_file_regex = re.compile(r"^Ryujinx_.*\.log$")
         log_file = re.compile(r"^.*\.log|.*\.txt$")
         is_ryujinx_log_file = re.match(ryujinx_log_file_regex, filename) is not None
         is_log_file = re.match(log_file, filename) is not None
