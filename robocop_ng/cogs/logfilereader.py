@@ -898,12 +898,17 @@ class LogFileReader(Cog):
         for attachment in message.attachments:
             is_log_file, is_ryujinx_log_file = self.is_valid_log_name(attachment)
 
-            if is_log_file and is_ryujinx_log_file and message.channel.id in self.bot_log_allowed_channels.values():
+            if (
+                is_log_file
+                and is_ryujinx_log_file
+                and message.channel.id in self.bot_log_allowed_channels.values()
+            ):
                 return await self.analyse_log_message(
                     message, message.attachments.index(attachment)
                 )
             elif (
-                is_log_file and is_ryujinx_log_file
+                is_log_file
+                and is_ryujinx_log_file
                 and message.channel.id not in self.bot_log_allowed_channels.values()
             ):
                 return await message.author.send(
