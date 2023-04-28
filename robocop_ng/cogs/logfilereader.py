@@ -662,7 +662,7 @@ class LogFileReader(Cog):
                 old_mainline_version = re.compile(r"^\d\.\d\.(\d){4}$")
                 pr_version = re.compile(r"^\d\.\d\.\d\+([a-f]|\d){7}$")
                 ldn_version = re.compile(r"^\d\.\d\.\d\-ldn\d+\.\d+(?:\.\d+|$)")
-                mac_version = re.compile(r"^\d\.\d\.\d\-macos\d+\.\d+(?:\.\d+|$)")
+                mac_version = re.compile(r"^\d\.\d\.\d\-macos\d+(?:\.\d+(?:\.\d+|$)|$)")
 
                 is_channel_allowed = False
 
@@ -813,7 +813,9 @@ class LogFileReader(Cog):
             True for elem in self.uploaded_log_info if filename in elem.values()
         ]
         if not any(uploaded_logs_exist):
-            reply_message = await message.channel.send("Log detected, parsing...")
+            reply_message = await message.channel.send(
+                "Log detected, parsing...", reference=message
+            )
             try:
                 embed = await self.log_file_read(message)
                 if "Ryujinx_" in filename:
