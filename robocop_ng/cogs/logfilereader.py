@@ -662,7 +662,7 @@ class LogFileReader(Cog):
                 old_mainline_version = re.compile(r"^\d\.\d\.(\d){4}$")
                 pr_version = re.compile(r"^\d\.\d\.\d\+([a-f]|\d){7}$")
                 ldn_version = re.compile(r"^\d\.\d\.\d\-ldn\d+\.\d+(?:\.\d+|$)")
-                mac_version = re.compile(r"^\d\.\d\.\d\-macos\d+\.\d+(?:\.\d+|$)")
+                mac_version = re.compile(r"^\d\.\d\.\d\-macos\d+(?:\.\d+(?:\.\d+|$)|$)")
 
                 is_channel_allowed = False
 
