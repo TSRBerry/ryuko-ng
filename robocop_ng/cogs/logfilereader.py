@@ -729,7 +729,9 @@ class LogFileReader(Cog):
                 )
                 warn_context = await self.bot.get_context(warn_message)
                 await warn_context.invoke(
-                    warn_command, reason="This log contains a blocked title id."
+                    warn_command,
+                    target=None,
+                    reason="This log contains a blocked title id.",
                 )
             else:
                 logging.error(
