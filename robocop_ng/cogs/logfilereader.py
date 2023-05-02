@@ -90,7 +90,7 @@ class LogFileReader(Cog):
             game_name = game_name.group(1).rstrip()
             app_id_regex = re.match(r".* \[([a-zA-Z0-9]*)\]", game_name)
             if app_id_regex:
-                app_id = app_id_regex.group(1).strip()
+                app_id = app_id_regex.group(1).strip().upper()
             else:
                 app_id = None
             bids_regex = re.search(
@@ -99,9 +99,9 @@ class LogFileReader(Cog):
                 re.DOTALL,
             )
             if bids_regex is not None and len(bids_regex.groups()) > 0:
-                app_id_from_bids = bids_regex.group(1).strip()
+                app_id_from_bids = bids_regex.group(1).strip().upper()
                 build_ids = [
-                    bid.strip()
+                    bid.strip().upper()
                     for bid in bids_regex.group(2).splitlines()
                     if is_build_id_valid(bid.strip())
                 ]
