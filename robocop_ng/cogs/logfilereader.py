@@ -647,10 +647,10 @@ class LogFileReader(Cog):
                         return mods_status
 
                 def cheat_information(log_file=log_file):
-                    cheat_regex = re.compile(r"Installing cheat\s\'(.+?)\'")
+                    cheat_regex = re.compile(r"Installing cheat\s\'<?(.+?)>?\'")
                     matches = re.findall(cheat_regex, log_file)
                     if matches:
-                        cheats = [match[0] for match in matches]
+                        cheats = [f"ℹ️ {match}" for match in matches]
                         return list(set(cheats))
 
                 game_mods = mods_information()
@@ -660,6 +660,14 @@ class LogFileReader(Cog):
                 game_cheats = cheat_information()
                 if game_cheats:
                     self.embed["game_info"]["cheats"] = "\n".join(game_cheats)
+
+                if (
+                    re.search(r"UserId: 00000000000000010000000000000000", log_file)
+                    is not None
+                ):
+                    self.embed["game_info"]["notes"].append(
+                        "⚠️ Default user profile in use, consider creating a custom one."
+                    )
 
                 controllers_regex = re.compile(r"Hid Configure: ([^\r\n]+)")
                 controllers = re.findall(controllers_regex, log_file)
@@ -974,7 +982,7 @@ class LogFileReader(Cog):
         ]
     )
     async def disable_ro_section(
-        self, ctx: Context, note: str, ro_section_snippet: str
+        self, ctx: Context, note: str, *, ro_section_snippet: str
     ):
         ro_section_snippet = ro_section_snippet.strip("`").splitlines()
         ro_section_snippet = [
