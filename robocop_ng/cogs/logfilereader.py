@@ -52,19 +52,23 @@ class LogFileReader(Cog):
             self.bot.config.named_roles[x] for x in self.disallowed_named_roles
         ]
 
-    async def download_file(self, log_url):
+    @staticmethod
+    async def download_file(log_url):
         async with aiohttp.ClientSession() as session:
             # Grabs first and last few bytes of log file to prevent abuse from large files
             headers = {"Range": "bytes=0-60000, -6000"}
             async with session.get(log_url, headers=headers) as response:
                 return await response.text("UTF-8")
 
-    def get_main_ro_section(self, log_file: str) -> Optional[dict[str, str]]:
+    @staticmethod
+    def get_main_ro_section(log_file: str) -> Optional[dict[str, str]]:
         ro_section_regex = re.search(
             r"PrintRoSectionInfo: main:[\r\n]*(.*)", log_file, re.DOTALL
         )
         if ro_section_regex is not None and len(ro_section_regex.groups()) > 0:
             ro_section = {"module": "", "sdk_libraries": []}
+            if ro_section_regex.group(1) is None:
+                return None
             for line in ro_section_regex.group(1).splitlines():
                 line = line.strip()
                 if line.startswith("Module:"):
@@ -81,32 +85,35 @@ class LogFileReader(Cog):
     def get_app_info(
         self, log_file: str
     ) -> Optional[tuple[str, str, list[str], dict[str, str]]]:
-        game_name = re.search(
+        game_name_regex = re.search(
             r"Loader [A-Za-z]*: Application Loaded:\s([^;\n\r]*)",
             log_file,
             re.MULTILINE,
         )
-        if game_name is not None and len(game_name.groups()) > 0:
-            game_name = game_name.group(1).rstrip()
-            app_id_regex = re.match(r".* \[([a-zA-Z0-9]*)\]", game_name)
-            if app_id_regex:
-                app_id = app_id_regex.group(1).strip().upper()
-            else:
-                app_id = None
+        if game_name_regex is not None and len(game_name_regex.groups()) > 0:
+            app_id = None
+            if game_name_regex.group(1) is not None:
+                game_name = game_name_regex.group(1).rstrip()
+                app_id_regex = re.match(r".* \[([a-zA-Z0-9]*)\]", game_name)
+                if app_id_regex:
+                    app_id = app_id_regex.group(1).strip().upper()
             bids_regex = re.search(
                 r"Build ids found for title ([a-zA-Z0-9]*):[\n\r]*(.*)",
                 log_file,
                 re.DOTALL,
             )
             if bids_regex is not None and len(bids_regex.groups()) > 0:
-                app_id_from_bids = bids_regex.group(1).strip().upper()
-                build_ids = [
-                    bid.strip().upper()
-                    for bid in bids_regex.group(2).splitlines()
-                    if is_build_id_valid(bid.strip())
-                ]
+                app_id_from_bids = None
+                build_ids = None
+                if bids_regex.group(1) is not None:
+                    app_id_from_bids = bids_regex.group(1).strip().upper()
+                if bids_regex.group(2) is not None:
+                    build_ids = [
+                        bid.strip().upper()
+                        for bid in bids_regex.group(2).splitlines()
+                        if is_build_id_valid(bid.strip())
+                    ]
 
-                # TODO: Check if self.get_main_ro_section() is None and return an error
                 return (
                     app_id,
                     app_id_from_bids,
@@ -119,7 +126,9 @@ class LogFileReader(Cog):
         app_info = self.get_app_info(log_file)
         if app_info is None:
             return True
-        app_id, another_app_id, _, _ = app_info
+        app_id, another_app_id, build_ids, main_ro_section = app_info
+        if app_id is None or another_app_id is None or build_ids is None or main_ro_section is None:
+            return False
         return app_id == another_app_id
 
     def is_game_blocked(self, log_file: str) -> bool:
