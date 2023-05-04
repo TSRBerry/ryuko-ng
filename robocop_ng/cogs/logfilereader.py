@@ -21,6 +21,7 @@ from robocop_ng.helpers.disabled_ids import (
     is_ro_section_valid,
     add_disabled_ro_section,
     remove_disabled_ro_section,
+    remove_disable_id,
 )
 from robocop_ng.helpers.ryujinx_log_analyser import LogAnalyser
 
@@ -286,14 +287,14 @@ class LogFileReader(Cog):
         aliases=["disallow_log_id", "forbid_log_id", "block_id", "blockid"]
     )
     async def disable_log_id(
-        self, ctx: Context, block_id_type: str, block_id: str, note=""
+        self, ctx: Context, disable_id: str, block_id_type: str, *, block_id: str
     ):
         match block_id_type.lower():
             case "app" | "app_id" | "appid" | "tid" | "title_id":
                 if not is_app_id_valid(block_id):
                     return await ctx.send("The specified app id is invalid.")
 
-                if add_disabled_app_id(self.bot, block_id, note):
+                if add_disabled_app_id(self.bot, disable_id, block_id):
                     return await ctx.send(
                         f"Application id '{block_id}' is now blocked!"
                     )
@@ -305,13 +306,37 @@ class LogFileReader(Cog):
                 if not is_build_id_valid(block_id):
                     return await ctx.send("The specified build id is invalid.")
 
-                if add_disabled_build_id(self.bot, block_id, note):
+                if add_disabled_build_id(self.bot, disable_id, block_id):
                     return await ctx.send(f"Build id '{block_id}' is now blocked!")
                 else:
                     return await ctx.send(f"Build id '{block_id}' is already blocked.")
+            case "ro_section" | "rosection":
+                ro_section_snippet = block_id.strip("`").splitlines()
+                ro_section_snippet = [
+                    line for line in ro_section_snippet if len(line.strip()) > 0
+                ]
+
+                ro_section_info_regex = re.search(
+                    r"PrintRoSectionInfo: main:", ro_section_snippet[0]
+                )
+                if ro_section_info_regex is None:
+                    ro_section_snippet.insert(0, "PrintRoSectionInfo: main:")
+
+                ro_section = LogAnalyser.get_main_ro_section(
+                    "\n".join(ro_section_snippet)
+                )
+                if ro_section is not None and is_ro_section_valid(ro_section):
+                    if add_disabled_ro_section(self.bot, disable_id, ro_section):
+                        return await ctx.send(
+                            f"The specified read-only section for '{disable_id}' is now blocked."
+                        )
+                    else:
+                        return await ctx.send(
+                            f"The specified read-only section for '{disable_id}' is already blocked."
+                        )
             case _:
                 return await ctx.send(
-                    "The specified id type is invalid. Valid id types are: ['app_id', 'build_id']"
+                    "The specified id type is invalid. Valid id types are: ['app_id', 'build_id', 'ro_section']"
                 )
 
     @commands.check(check_if_staff)
@@ -324,31 +349,43 @@ class LogFileReader(Cog):
             "unblockid",
         ]
     )
-    async def enable_log_id(self, ctx: Context, block_id_type: str, block_id: str):
+    async def enable_log_id(self, ctx: Context, disable_id: str, block_id_type="all"):
         match block_id_type.lower():
-            case "app" | "app_id" | "appid" | "tid" | "title_id":
-                if not is_app_id_valid(block_id):
-                    return await ctx.send("The specified app id is invalid.")
-
-                if remove_disabled_app_id(self.bot, block_id):
+            case "all":
+                if remove_disable_id(self.bot, disable_id):
                     return await ctx.send(
-                        f"Application id '{block_id}' is now unblocked!"
+                        f"All ids for '{disable_id}' are now unblocked!"
+                    )
+                else:
+                    return await ctx.send(f"No blocked ids for '{disable_id}' found.")
+            case "app" | "app_id" | "appid" | "tid" | "title_id":
+                if remove_disabled_app_id(self.bot, disable_id):
+                    return await ctx.send(
+                        f"Application id for '{disable_id}' is now unblocked!"
                     )
                 else:
                     return await ctx.send(
-                        f"Application id '{block_id}' is not blocked."
+                        f"No blocked application id for '{disable_id}' found."
                     )
             case "build" | "build_id" | "bid":
-                if not is_build_id_valid(block_id):
-                    return await ctx.send("The specified build id is invalid.")
-
-                if remove_disabled_build_id(self.bot, block_id):
-                    return await ctx.send(f"Build id '{block_id}' is now unblocked!")
+                if remove_disabled_build_id(self.bot, disable_id):
+                    return await ctx.send(
+                        f"Build id for '{disable_id}' is now unblocked!"
+                    )
                 else:
-                    return await ctx.send(f"Build id '{block_id}' is not blocked.")
+                    return await ctx.send(f"No blocked build id '{disable_id}' found.")
+            case "ro_section" | "rosection":
+                if remove_disabled_ro_section(self.bot, disable_id):
+                    return await ctx.send(
+                        f"Read-only section for '{disable_id}' is now unblocked!"
+                    )
+                else:
+                    return await ctx.send(
+                        f"No blocked read-only section for '{disable_id}' found."
+                    )
             case _:
                 return await ctx.send(
-                    "The specified id type is invalid. Valid id types are: ['app_id', 'build_id']"
+                    "The specified id type is invalid. Valid id types are: ['all', 'app_id', 'build_id', 'ro_section']"
                 )
 
     @commands.check(check_if_staff)
@@ -363,93 +400,40 @@ class LogFileReader(Cog):
     )
     async def list_disabled_ids(self, ctx: Context):
         disabled_ids = get_disabled_ids(self.bot)
+        id_types = {"app_id": "AppID", "build_id": "BID", "ro_section": "RoSection"}
+
         message = "**Blocking analysis of the following IDs:**\n"
-        for id_type, name in {
-            "app_id": "Application IDs",
-            "build_id": "Build IDs",
-        }.items():
-            if len(disabled_ids[id_type].keys()) > 0:
-                message += f"- {name}:\n"
-                for disabled_id, note in disabled_ids[id_type].items():
-                    message += (
-                        f"  - [{disabled_id.upper()}]: {note}\n"
-                        if note != ""
-                        else f"  - [{disabled_id}]\n"
-                    )
-                message += "\n"
-        if len(disabled_ids["ro_section"].keys()) > 0:
-            message += "- Read-only sections:\n"
-            for note in disabled_ids["ro_section"].keys():
-                f"- [{note}]"
+        for name, entry in disabled_ids.items():
+            message += f"- {name}:\n"
+            for id_type, title in id_types.items():
+                if len(entry[id_type]) > 0:
+                    if id_type != "ro_section":
+                        message += f"  - __{title}__: {entry[id_type]}\n"
+                    else:
+                        message += f"  - __{title}__\n"
+            message += "\n"
         return await ctx.send(message)
-
-    @commands.check(check_if_staff)
-    @commands.command(
-        aliases=[
-            "disallow_ro_section",
-            "forbid_ro_section",
-            "block_ro_section",
-            "blockrosection",
-        ]
-    )
-    async def disable_ro_section(
-        self, ctx: Context, note: str, *, ro_section_snippet: str
-    ):
-        ro_section_snippet = ro_section_snippet.strip("`").splitlines()
-        ro_section_snippet = [
-            line for line in ro_section_snippet if len(line.strip()) > 0
-        ]
-
-        ro_section_info_regex = re.search(
-            r"PrintRoSectionInfo: main:", ro_section_snippet[0]
-        )
-        if ro_section_info_regex is None:
-            ro_section_snippet.insert(0, "PrintRoSectionInfo: main:")
-
-        ro_section = LogAnalyser.get_main_ro_section("\n".join(ro_section_snippet))
-        if ro_section is not None and is_ro_section_valid(ro_section):
-            if add_disabled_ro_section(self.bot, note, ro_section):
-                return await ctx.send(
-                    f"The specified read-only section '{note}' is now blocked."
-                )
-            else:
-                return await ctx.send(
-                    f"The specified read-only section '{note}' is already blocked."
-                )
-
-    @commands.check(check_if_staff)
-    @commands.command(
-        aliases=[
-            "allow_ro_section",
-            "unblock_ro_section",
-            "allow_rosection",
-            "unblockrosection",
-        ]
-    )
-    async def enable_ro_section(self, ctx: Context, note: str):
-        if remove_disabled_ro_section(self.bot, note):
-            return await ctx.send(
-                f"The read-only section for '{note}' is now unblocked!"
-            )
-        else:
-            return await ctx.send(f"The read-only section for '{note}' is not blocked.")
 
     @commands.check(check_if_staff)
     @commands.command(
         aliases=[
             "get_blocked_ro_section",
             "disabled_ro_section",
-            "blocked_ro_section" "list_disabled_ro_section",
+            "blocked_ro_section",
+            "list_disabled_ro_section",
             "list_blocked_ro_section",
         ]
     )
-    async def get_disabled_ro_section(self, ctx: Context, note: str):
+    async def get_disabled_ro_section(self, ctx: Context, disable_id: str):
         disabled_ids = get_disabled_ids(self.bot)
-        key_note = note.lower()
-        if key_note in disabled_ids["ro_section"].keys():
-            message = f"**Disabled read-only section for '{note}'**:\n"
+        disable_id = disable_id.lower()
+        if (
+            disable_id in disabled_ids.keys()
+            and len(disabled_ids[disable_id]["ro_section"]) > 0
+        ):
+            message = f"**Blocked read-only section for '{disable_id}'**:\n"
             message += "```\n"
-            for key, content in disabled_ids["ro_section"][key_note].items():
+            for key, content in disabled_ids[disable_id]["ro_section"].items():
                 match key:
                     case "module":
                         message += f"Module: {content}\n"
@@ -461,7 +445,7 @@ class LogFileReader(Cog):
             message += "```"
             return await ctx.send(message)
         else:
-            return await ctx.send("The specified read-only section is not blocked.")
+            return await ctx.send(f"No read-only section blocked for '{disable_id}'.")
 
     async def analyse_log_message(self, message: Message, attachment_index=0):
         author_id = message.author.id
