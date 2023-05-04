@@ -928,7 +928,7 @@ class LogFileReader(Cog):
                     return await ctx.send(
                         f"Application id '{block_id}' is not blocked."
                     )
-            case "build" | "build_id", "bid":
+            case "build" | "build_id" | "bid":
                 if not is_build_id_valid(block_id):
                     return await ctx.send("The specified build id is invalid.")
 
