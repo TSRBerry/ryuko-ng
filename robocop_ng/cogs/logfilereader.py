@@ -944,6 +944,7 @@ class LogFileReader(Cog):
     @commands.check(check_if_staff)
     @commands.command(
         aliases=[
+            "disabled_ids",
             "blocked_ids",
             "listblockedids",
             "list_blocked_log_ids",
