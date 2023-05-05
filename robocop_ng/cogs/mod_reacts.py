@@ -29,10 +29,10 @@ class ModReact(Cog):
         count = 0
         async for msg in channel.history(limit=limit):
             for react in msg.reactions:
-                if await react.users().find(lambda u: u == user):
-                    count += 1
-                    async for u in react.users():
-                        await msg.remove_reaction(react, u)
+                async for react_user in react.users():
+                    if react_user == user:
+                        count += 1
+                        await react.remove(user)
         msg = (
             f"✏️ **Cleared reacts**: {ctx.author.mention} cleared "
             f"{user.mention}'s reacts from the last {limit} messages "
