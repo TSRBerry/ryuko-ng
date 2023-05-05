@@ -27,7 +27,7 @@ def get_disabled_ids(bot) -> dict[str, dict[str, Union[str, dict[str, str]]]]:
         if "app_id" in disabled_ids.keys():
             old_disabled_ids = disabled_ids.copy()
             disabled_ids = {}
-            for key in disabled_ids["app_id"].values():
+            for key in old_disabled_ids["app_id"].values():
                 disabled_ids[key.lower()] = {
                     "app_id": "",
                     "build_id": "",
