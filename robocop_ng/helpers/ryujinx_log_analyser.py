@@ -363,7 +363,7 @@ class LogAnalyser:
             self._game_info["mods"] = "\n".join(mods_status)
 
     def __get_cheats(self):
-        cheat_regex = re.compile(r"Tampering program\s<?(.+?)>?")
+        cheat_regex = re.compile(r"Tampering program\s<(.+)>")
         matches = re.findall(cheat_regex, self._log_text)
         if matches:
             cheats = [f"ℹ️ {match}" for match in matches]
@@ -621,7 +621,7 @@ class LogAnalyser:
     ) -> dict[str, dict[str, str]]:
         last_error = self.get_last_error()
         if last_error is not None:
-            last_error = last_error[:2]
+            last_error = "\n".join(last_error[:2])
             self._game_info["errors"] = f"```\n{last_error}\n```"
         else:
             self._game_info["errors"] = "No errors found in log"
@@ -658,6 +658,13 @@ class LogAnalyser:
 
     def analyse(self) -> dict[str, Union[dict[str, str], list[str], list[list[str]]]]:
         self._notes = list(self.__sort_notes())
+
+        last_error = self.get_last_error()
+        if last_error is not None:
+            last_error = "\n".join(last_error[:2])
+            self._game_info["errors"] = f"```\n{last_error}\n```"
+        else:
+            self._game_info["errors"] = "No errors found in log"
 
         return {
             "hardware_info": self._hardware_info,
