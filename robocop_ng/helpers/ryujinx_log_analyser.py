@@ -36,6 +36,10 @@ class LogAnalyser:
     _notes: list[str]
 
     @staticmethod
+    def is_homebrew(log_file: str) -> bool:
+        return re.search("LoadApplication: Loading as Homebrew", log_file) is not None
+
+    @staticmethod
     def get_main_ro_section(log_file: str) -> Optional[dict[str, str]]:
         ro_section_match = re.search(
             r"PrintRoSectionInfo: main:[\r\n]*(.*)", log_file, re.DOTALL

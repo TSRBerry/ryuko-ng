@@ -64,7 +64,8 @@ class LogFileReader(Cog):
     @staticmethod
     def is_log_valid(log_file: str) -> bool:
         app_info = LogAnalyser.get_app_info(log_file)
-        if app_info is None:
+        is_homebrew = LogAnalyser.is_homebrew(log_file)
+        if app_info is None or is_homebrew:
             return True
         game_name, app_id, another_app_id, build_ids, main_ro_section = app_info
         if (
