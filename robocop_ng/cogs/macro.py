@@ -127,7 +127,6 @@ class Macro(Cog):
         else:
             await ctx.send(f"Error: No aliases found for macro '{existing_key}'.")
 
-
     @commands.check(check_if_staff_or_dm)
     @commands.cooldown(3, 30, BucketType.channel)
     @commands.command(name="macros", aliases=["ml", "listmacros", "list_macros"])
