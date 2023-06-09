@@ -22,6 +22,12 @@ def check_if_staff_or_ot(ctx):
     return is_ot or is_staff or is_bot_cmds
 
 
+def check_if_staff_or_dm(ctx):
+    if not ctx.guild:
+        return True
+    return any(r.id in config.staff_role_ids for r in ctx.author.roles)
+
+
 def check_if_collaborator(ctx):
     if not ctx.guild:
         return False

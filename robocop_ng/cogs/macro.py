@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Cog, Context, BucketType
 
-from robocop_ng.helpers.checks import check_if_staff
+from robocop_ng.helpers.checks import check_if_staff, check_if_staff_or_dm
 from robocop_ng.helpers.macros import (
     get_macro,
     add_macro,
@@ -127,44 +127,41 @@ class Macro(Cog):
         else:
             await ctx.send(f"Error: No aliases found for macro '{existing_key}'.")
 
+    @commands.check(check_if_staff_or_dm)
     @commands.cooldown(3, 30, BucketType.channel)
     @commands.command(name="macros", aliases=["ml", "listmacros", "list_macros"])
     async def list_macros(self, ctx: Context, macros_only=False):
         macros = get_macros_dict(self.bot)
         if len(macros["macros"]) > 0:
             messages = []
-            num_messages = (
-                len(macros["macros"]) // 50 if len(macros["macros"]) > 50 else 1
-            )
-            message = ""
+            macros_formatted = []
 
-            for index, key in zip(
-                range(len(macros["macros"])), sorted(macros["macros"].keys())
-            ):
-                if index == 0 or index + 1 % 50 == 0:
-                    if len(message) > 0:
-                        messages.append(message)
-                    message = f"📝 **Macros** ({len(messages) + 1}/{num_messages}):\n"
-                message += f"- {key}\n"
-                if not macros_only and key in macros["aliases"].keys():
-                    message += "  - __aliases__: "
-                    first_alias = True
+            for key in sorted(macros["macros"].keys()):
+                message = f"- {key}"
+                if not macros_only:
                     for alias in macros["aliases"][key]:
-                        if first_alias:
-                            message += alias
-                            first_alias = False
-                            continue
                         message += f", {alias}"
-                    message += "\n"
+                macros_formatted.append(message)
 
-            # Add the last message as well
-            messages.append(message)
+            message = f"📝 **Macros**:\n"
+            for macro in macros_formatted:
+                if len(message) >= 1500:
+                    messages.append(message)
+                    message = f"{macro}\n"
+                else:
+                    message += f"{macro}\n"
+
+            if message not in messages:
+                # Add the last message as well
+                messages.append(message)
 
             for msg in messages:
                 await ctx.send(msg)
+
         else:
             await ctx.send("Couldn't find any macros.")
 
+    @commands.check(check_if_staff_or_dm)
     @commands.cooldown(3, 30, BucketType.channel)
     @commands.command(name="aliases", aliases=["listaliases", "list_aliases"])
     async def list_aliases(self, ctx: Context, existing_key: str):
