@@ -138,7 +138,7 @@ class Macro(Cog):
 
             for key in sorted(macros["macros"].keys()):
                 message = f"- {key}"
-                if not macros_only:
+                if not macros_only and key in macros["aliases"]:
                     for alias in macros["aliases"][key]:
                         message += f", {alias}"
                 macros_formatted.append(message)
