@@ -1,2 +1,8 @@
-config.py
-__pycache__
+**/__pycache__/
+.git/
+.github/
+.gitignore
+.dockerignore
+
+**/config.py
+**/data/
