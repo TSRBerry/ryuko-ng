@@ -2,7 +2,7 @@ from typing import Optional
 
 import discord
 from discord.ext import commands
-from discord.ext.commands import Cog, Context, BucketType
+from discord.ext.commands import Cog, Context, BucketType, Greedy
 
 from robocop_ng.helpers.checks import check_if_staff, check_if_staff_or_dm
 from robocop_ng.helpers.macros import (
@@ -24,14 +24,16 @@ class Macro(Cog):
     @commands.cooldown(3, 30, BucketType.member)
     @commands.command(aliases=["m"])
     async def macro(
-        self, ctx: Context, key: str, target: Optional[discord.Member] = None
+        self, ctx: Context, key: str, targets: Greedy[discord.Member] = None
     ):
         await ctx.message.delete()
         if len(key) > 0:
             text = get_macro(self.bot, key)
             if text is not None:
-                if target is not None:
-                    await ctx.send(f"{target.mention}:\n{text}")
+                if targets is not None:
+                    await ctx.send(
+                        f"{', '.join(target.mention for target in targets)}:\n{text}"
+                    )
                 else:
                     if ctx.message.reference is not None:
                         await ctx.send(
