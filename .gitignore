@@ -98,8 +98,7 @@ files/*
 *.ttf
 
 priv-*
-config.py
 
 # Prevent data files from being committed
 data/
-robocop_ng/config_template.py
+robocop_ng/config.py
