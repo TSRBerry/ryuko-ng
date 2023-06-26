@@ -31,7 +31,9 @@ class Macro(Cog):
             text = get_macro(self.bot, key)
             if text is not None:
                 if targets is not None:
-                    await ctx.send(f"{', '.join(target.mention for target in targets)}:\n{text}")
+                    await ctx.send(
+                        f"{', '.join(target.mention for target in targets)}:\n{text}"
+                    )
                 else:
                     if ctx.message.reference is not None:
                         await ctx.send(
