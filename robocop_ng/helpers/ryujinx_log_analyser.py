@@ -687,3 +687,26 @@ class LogAnalyser:
             "settings": self._settings,
             "app_info": self.get_app_info(self._log_text)
         }
+
+
+if __name__ == "__main__":
+    import argparse
+    import json
+    import os
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("log_file", type=str)
+
+    args = parser.parse_args()
+
+    if not os.path.isfile(args.log_file):
+        print(f"Couldn't find log file: {args.log_file}")
+        exit(1)
+
+    with open(args.log_file, "r") as file:
+        text = file.read()
+
+    analyser = LogAnalyser(text)
+    result = analyser.analyse()
+
+    print(json.dumps(result, indent=2))
