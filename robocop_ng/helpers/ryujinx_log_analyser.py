@@ -42,7 +42,8 @@ class LogAnalyser:
     @staticmethod
     def get_main_ro_section(log_file: str) -> Optional[dict[str, str]]:
         ro_section_matches = re.findall(
-            r"PrintRoSectionInfo: main:[\r\n]((?:\s+.*[\r\n])*)", log_file)
+            r"PrintRoSectionInfo: main:[\r\n]((?:\s+.*[\r\n])*)", log_file
+        )
         if ro_section_matches and len(ro_section_matches) > 0:
             ro_section_match: str = ro_section_matches[-1]
             ro_section = {"module": "", "sdk_libraries": []}
@@ -685,7 +686,7 @@ class LogAnalyser:
             "notes": self._notes,
             "errors": self._log_errors,
             "settings": self._settings,
-            "app_info": self.get_app_info(self._log_text)
+            "app_info": self.get_app_info(self._log_text),
         }
 
 
