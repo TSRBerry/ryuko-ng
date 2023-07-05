@@ -41,14 +41,15 @@ class LogAnalyser:
 
     @staticmethod
     def get_main_ro_section(log_file: str) -> Optional[dict[str, str]]:
-        ro_section_match = re.search(
-            r"PrintRoSectionInfo: main:[\r\n]*(.*)", log_file, re.DOTALL
+        ro_section_matches = re.findall(
+            r"PrintRoSectionInfo: main:[\r\n]((?:\s+.*[\r\n])*)", log_file
         )
-        if ro_section_match is not None and len(ro_section_match.groups()) > 0:
+        if ro_section_matches and len(ro_section_matches) > 0:
+            ro_section_match: str = ro_section_matches[-1]
             ro_section = {"module": "", "sdk_libraries": []}
-            if ro_section_match.group(1) is None:
+            if ro_section_match is None or len(ro_section_match) == 0:
                 return None
-            for line in ro_section_match.group(1).splitlines():
+            for line in ro_section_match.splitlines():
                 line = line.strip()
                 if line.startswith("Module:"):
                     ro_section["module"] = line[8:]
@@ -75,20 +76,22 @@ class LogAnalyser:
             app_id_match = re.match(r".* \[([a-zA-Z0-9]*)\]", game_name)
             if app_id_match:
                 app_id = app_id_match.group(1).strip().upper()
-            bids_match = re.search(
-                r"Build ids found for title ([a-zA-Z0-9]*):[\n\r]*(.*)",
+            else:
+                app_id = ""
+            bids_match_all = re.findall(
+                r"Build ids found for title ([a-zA-Z0-9]*):[\n\r]*((?:\s+.*[\n\r]+)+)",
                 log_file,
-                re.DOTALL,
             )
-            if bids_match is not None and len(bids_match.groups()) > 0:
+            if bids_match_all and len(bids_match_all) > 0:
+                bids_match: tuple[str] = bids_match_all[-1]
                 app_id_from_bids = None
                 build_ids = None
-                if bids_match.group(1) is not None:
-                    app_id_from_bids = bids_match.group(1).strip().upper()
-                if bids_match.group(2) is not None:
+                if bids_match[0] is not None:
+                    app_id_from_bids = bids_match[0].strip().upper()
+                if bids_match[1] is not None:
                     build_ids = [
                         bid.strip().upper()
-                        for bid in bids_match.group(2).splitlines()
+                        for bid in bids_match[1].splitlines()
                         if is_build_id_valid(bid.strip())
                     ]
 
@@ -683,4 +686,28 @@ class LogAnalyser:
             "notes": self._notes,
             "errors": self._log_errors,
             "settings": self._settings,
+            "app_info": self.get_app_info(self._log_text),
         }
+
+
+if __name__ == "__main__":
+    import argparse
+    import json
+    import os
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("log_file", type=str)
+
+    args = parser.parse_args()
+
+    if not os.path.isfile(args.log_file):
+        print(f"Couldn't find log file: {args.log_file}")
+        exit(1)
+
+    with open(args.log_file, "r") as file:
+        text = file.read()
+
+    analyser = LogAnalyser(text)
+    result = analyser.analyse()
+
+    print(json.dumps(result, indent=2))
