@@ -4,7 +4,7 @@ import re
 import aiohttp
 from discord import Colour, Embed, Message, Attachment
 from discord.ext import commands
-from discord.ext.commands import Cog, Context
+from discord.ext.commands import Cog, Context, BucketType
 
 from robocop_ng.helpers.checks import check_if_staff
 from robocop_ng.helpers.disabled_ids import (
@@ -513,7 +513,7 @@ class LogFileReader(Cog):
                 ),
             )
 
-    @commands.check(check_if_staff)
+    @commands.cooldown(3, 30, BucketType.channel)
     @commands.command(
         aliases=["analyselog", "analyse_log", "analyze", "analyzelog", "analyze_log"]
     )
