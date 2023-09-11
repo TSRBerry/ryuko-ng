@@ -195,7 +195,7 @@ class Meme(Cog):
         if target is None and ctx.message.reference is None:
             await ctx.reply("https://tenor.com/view/bonk-gif-26414884")
         else:
-            if target is None:
+            if ctx.message.reference is not None:
                 target = (
                     await ctx.channel.fetch_message(ctx.message.reference.message_id)
                 ).author

@@ -31,7 +31,9 @@ class ModTimed(Cog):
                 f"I'm sorry {ctx.author.mention}, I'm afraid I can't do that."
             )
         else:
-            if target is None:
+            if ctx.message.reference is not None:
+                if target is not None:
+                    duration = str(target) + duration
                 target = (
                     await ctx.channel.fetch_message(ctx.message.reference.message_id)
                 ).author
@@ -107,7 +109,9 @@ class ModTimed(Cog):
                 f"I'm sorry {ctx.author.mention}, I'm afraid I can't do that."
             )
         else:
-            if target is None:
+            if ctx.message.reference is not None:
+                if target is not None:
+                    duration = str(target) + duration
                 target = (
                     await ctx.channel.fetch_message(ctx.message.reference.message_id)
                 ).author
