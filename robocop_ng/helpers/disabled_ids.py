@@ -2,6 +2,8 @@ import json
 import os
 from typing import Union
 
+from robocop_ng.helpers.notifications import report_critical_error
+
 
 def get_disabled_ids_path(bot) -> str:
     return os.path.join(bot.state_dir, "data/disabled_ids.json")
@@ -22,7 +24,19 @@ def is_ro_section_valid(ro_section: dict[str, str]) -> bool:
 def get_disabled_ids(bot) -> dict[str, dict[str, Union[str, dict[str, str]]]]:
     if os.path.isfile(get_disabled_ids_path(bot)):
         with open(get_disabled_ids_path(bot), "r") as f:
-            disabled_ids = json.load(f)
+            try:
+                disabled_ids = json.load(f)
+            except json.JSONDecodeError as e:
+                content = f.read()
+                report_critical_error(
+                    bot,
+                    e,
+                    additional_info={
+                        "file": {"length": len(content), "content": content}
+                    },
+                )
+                return {}
+
         # Migration code
         if "app_id" in disabled_ids.keys():
             old_disabled_ids = disabled_ids.copy()
