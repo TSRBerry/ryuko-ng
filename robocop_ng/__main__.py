@@ -63,6 +63,9 @@ for wanted_json_idx in range(len(wanted_jsons)):
     wanted_jsons[wanted_json_idx] = os.path.join(
         state_dir, wanted_jsons[wanted_json_idx]
     )
+    if not os.path.isfile(wanted_jsons[wanted_json_idx]):
+        with open(wanted_jsons[wanted_json_idx], "w") as file:
+            file.write("{}")
 
 intents = discord.Intents.all()
 intents.typing = False
