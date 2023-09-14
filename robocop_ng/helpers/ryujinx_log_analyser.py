@@ -37,7 +37,9 @@ class LogAnalyser:
 
     @staticmethod
     def is_homebrew(log_file: str) -> bool:
-        return re.search("LoadApplication: Loading as Homebrew", log_file) is not None
+        return (
+            re.search("Load.*Application: Loading as [Hh]omebrew", log_file) is not None
+        )
 
     @staticmethod
     def get_main_ro_section(log_file: str) -> Optional[dict[str, str]]:
