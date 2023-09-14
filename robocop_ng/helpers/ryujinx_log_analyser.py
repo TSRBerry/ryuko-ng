@@ -420,7 +420,7 @@ class LogAnalyser:
                 )
 
     def __get_log_notes(self):
-        default_logs = ["Info", "Warning", "Error", "Guest", "Stub"]
+        default_logs = ["Info", "Warning", "Error", "Guest"]
         user_logs = []
         if self._emu_info["logs_enabled"] is not None:
             user_logs = (
