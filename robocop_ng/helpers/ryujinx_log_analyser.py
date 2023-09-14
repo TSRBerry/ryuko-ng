@@ -29,7 +29,6 @@ class LogAnalyser:
     _log_text: str
     _log_errors: list[list[str]]
     _hardware_info: dict[str, Optional[str]]
-    _ram_available_mib: int
     _emu_info: dict[str, Optional[str]]
     _game_info: dict[str, Optional[str]]
     _settings: dict[str, Optional[str]]
@@ -176,7 +175,6 @@ class LogAnalyser:
             "aspect_ratio": "Unknown",
             "texture_recompression": "Unknown",
         }
-        self._ram_available_mib = -1
         self._notes = []
         self._log_errors = []
 
@@ -223,11 +221,9 @@ class LogAnalyser:
                             self._hardware_info[
                                 setting
                             ] = f"{ram_match.group(1)} {ram_match.group(2)}"
-                            self._ram_available_mib = int(ram_available)
                         except ValueError:
                             # ram_match.group(3) couldn't be parsed as a float.
                             self._hardware_info[setting] = "Error"
-                            self._ram_available_mib = -1
 
                 case "os":
                     os_match = re.search(
@@ -544,11 +540,6 @@ class LogAnalyser:
         if self.is_default_user_profile():
             self._notes.append(
                 "⚠️ Default user profile in use, consider creating a custom one."
-            )
-
-        if 8192 > self._ram_available_mib > -1:
-            self._notes.append(
-                f"⚠️ Less than 8GB RAM available ({self._ram_available_mib} MB)"
             )
 
         self.__get_controller_notes()
