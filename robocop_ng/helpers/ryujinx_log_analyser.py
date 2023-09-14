@@ -218,11 +218,15 @@ class LogAnalyser:
                             if ram_match.group(4) == "GB":
                                 ram_available *= 1024
 
+                            ram_total = float(ram_match.group(1))
+                            if ram_match.group(2) == "GB":
+                                ram_total *= 1024
+
                             self._hardware_info[
                                 setting
-                            ] = f"{ram_match.group(1)} {ram_match.group(2)}"
+                            ] = f"{ram_available}/{ram_total} MiB"
                         except ValueError:
-                            # ram_match.group(3) couldn't be parsed as a float.
+                            # ram_match.group(1) or ram_match.group(3) couldn't be parsed as a float.
                             self._hardware_info[setting] = "Error"
 
                 case "os":
