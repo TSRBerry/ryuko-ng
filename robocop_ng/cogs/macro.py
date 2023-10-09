@@ -1,5 +1,3 @@
-from typing import Optional
-
 import discord
 from discord.ext import commands
 from discord.ext.commands import Cog, Context, BucketType, Greedy
@@ -21,11 +19,9 @@ class Macro(Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.cooldown(3, 30, BucketType.member)
+    @commands.cooldown(3, 30, BucketType.user)
     @commands.command(aliases=["m"])
-    async def macro(
-        self, ctx: Context, key: str, targets: Greedy[discord.Member] = None
-    ):
+    async def macro(self, ctx: Context, key: str, targets: Greedy[discord.User] = None):
         await ctx.message.delete()
         if len(key) > 0:
             text = get_macro(self.bot, key)
