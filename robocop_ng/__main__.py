@@ -8,6 +8,8 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import CommandError, Context
 
+from robocop_ng.helpers.notifications import report_critical_error
+
 if len(sys.argv[1:]) != 1:
     sys.stderr.write("usage: <state_dir>")
     sys.exit(1)
@@ -63,6 +65,9 @@ for wanted_json_idx in range(len(wanted_jsons)):
     wanted_jsons[wanted_json_idx] = os.path.join(
         state_dir, wanted_jsons[wanted_json_idx]
     )
+    if not os.path.isfile(wanted_jsons[wanted_json_idx]):
+        with open(wanted_jsons[wanted_json_idx], "w") as file:
+            file.write("{}")
 
 intents = discord.Intents.all()
 intents.typing = False
@@ -136,6 +141,25 @@ async def on_command(ctx):
 @bot.event
 async def on_error(event: str, *args, **kwargs):
     log.exception(f"Error on {event}:")
+
+    exception = sys.exception()
+    is_report_allowed = any(
+        [
+            not isinstance(exception, x)
+            for x in [
+                discord.RateLimited,
+                discord.GatewayNotFound,
+                discord.InteractionResponded,
+                discord.LoginFailure,
+            ]
+        ]
+    )
+    if exception is not None and is_report_allowed:
+        await report_critical_error(
+            bot,
+            exception,
+            additional_info={"Event": event, "args": args, "kwargs": kwargs},
+        )
 
 
 @bot.event

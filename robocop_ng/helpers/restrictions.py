@@ -1,14 +1,28 @@
 import json
 import os
 
+from robocop_ng.helpers.notifications import report_critical_error
+
 
 def get_restrictions_path(bot):
     return os.path.join(bot.state_dir, "data/restrictions.json")
 
 
 def get_restrictions(bot):
-    with open(get_restrictions_path(bot), "r") as f:
-        return json.load(f)
+    if os.path.isfile(get_restrictions_path(bot)):
+        with open(get_restrictions_path(bot), "r") as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError as e:
+                content = f.read()
+                report_critical_error(
+                    bot,
+                    e,
+                    additional_info={
+                        "file": {"length": len(content), "content": content}
+                    },
+                )
+    return {}
 
 
 def set_restrictions(bot, contents):
@@ -18,11 +32,10 @@ def set_restrictions(bot, contents):
 
 def get_user_restrictions(bot, uid):
     uid = str(uid)
-    with open(get_restrictions_path(bot), "r") as f:
-        rsts = json.load(f)
-        if uid in rsts:
-            return rsts[uid]
-        return []
+    rsts = get_restrictions(bot)
+    if uid in rsts:
+        return rsts[uid]
+    return []
 
 
 def add_restriction(bot, uid, rst):

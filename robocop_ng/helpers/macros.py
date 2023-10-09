@@ -2,6 +2,8 @@ import json
 import os
 from typing import Optional, Union
 
+from robocop_ng.helpers.notifications import report_critical_error
+
 
 def get_macros_path(bot):
     return os.path.join(bot.state_dir, "data/macros.json")
@@ -10,7 +12,18 @@ def get_macros_path(bot):
 def get_macros_dict(bot) -> dict[str, dict[str, Union[list[str], str]]]:
     if os.path.isfile(get_macros_path(bot)):
         with open(get_macros_path(bot), "r") as f:
-            macros = json.load(f)
+            try:
+                macros = json.load(f)
+            except json.JSONDecodeError as e:
+                content = f.read()
+                report_critical_error(
+                    bot,
+                    e,
+                    additional_info={
+                        "file": {"length": len(content), "content": content}
+                    },
+                )
+                return {}
 
         # Migration code
         if "aliases" not in macros.keys():

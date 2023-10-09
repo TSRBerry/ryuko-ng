@@ -2,6 +2,8 @@ import json
 import os
 import time
 
+from robocop_ng.helpers.notifications import report_critical_error
+
 userlog_event_types = {
     "warns": "Warn",
     "bans": "Ban",
@@ -16,8 +18,20 @@ def get_userlog_path(bot):
 
 
 def get_userlog(bot):
-    with open(get_userlog_path(bot), "r") as f:
-        return json.load(f)
+    if os.path.isfile(get_userlog_path(bot)):
+        with open(get_userlog_path(bot), "r") as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError as e:
+                content = f.read()
+                report_critical_error(
+                    bot,
+                    e,
+                    additional_info={
+                        "file": {"length": len(content), "content": content}
+                    },
+                )
+    return {}
 
 
 def set_userlog(bot, contents):
