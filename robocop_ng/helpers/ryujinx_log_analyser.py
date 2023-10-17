@@ -33,7 +33,7 @@ class LogAnalyser:
     _emu_info: dict[str, Optional[str]]
     _game_info: dict[str, Optional[str]]
     _settings: dict[str, Optional[str]]
-    _notes: list[str]
+    _notes: Union[set[str], list[str]]
 
     @staticmethod
     def is_homebrew(log_file: str) -> bool:
@@ -178,7 +178,7 @@ class LogAnalyser:
             "aspect_ratio": "Unknown",
             "texture_recompression": "Unknown",
         }
-        self._notes = []
+        self._notes = set()
         self._log_errors = []
 
     def __get_errors(self):
@@ -408,10 +408,10 @@ class LogAnalyser:
             # Hid Configure lines can appear multiple times, so converting to dict keys removes duplicate entries,
             # also maintains the list order
             input_status = list(dict.fromkeys(input_status))
-            self._notes.append("\n".join(input_status))
+            self._notes.add("\n".join(input_status))
         # If emulator crashes on startup without game load, there is no need to show controller notification at all
         elif self._game_info["game_name"] != "Unknown":
-            self._notes.append("⚠️ No controller information found")
+            self._notes.add("⚠️ No controller information found")
 
     def __get_os_notes(self):
         if (
@@ -419,11 +419,11 @@ class LogAnalyser:
             and self._settings["graphics_backend"] != "Vulkan"
         ):
             if "Intel" in self._hardware_info["gpu"]:
-                self._notes.append(
+                self._notes.add(
                     "**⚠️ Intel iGPU users should consider using Vulkan graphics backend**"
                 )
             if "AMD" in self._hardware_info["gpu"]:
-                self._notes.append(
+                self._notes.add(
                     "**⚠️ AMD GPU users should consider using Vulkan graphics backend**"
                 )
 
@@ -436,7 +436,7 @@ class LogAnalyser:
             )
 
         if "Debug" in user_logs:
-            self._notes.append(
+            self._notes.add(
                 "⚠️ **Debug logs enabled will have a negative impact on performance**"
             )
 
@@ -447,47 +447,47 @@ class LogAnalyser:
         else:
             log_string = "✅ Default logs enabled"
 
-        self._notes.append(log_string)
+        self._notes.add(log_string)
 
     def __get_settings_notes(self):
         if self._settings["audio_backend"] == "Dummy":
-            self._notes.append(
+            self._notes.add(
                 "⚠️ Dummy audio backend, consider changing to SDL2 or OpenAL"
             )
 
         if self._settings["pptc"] == "Disabled":
-            self._notes.append("🔴 **PPTC cache should be enabled**")
+            self._notes.add("🔴 **PPTC cache should be enabled**")
 
         if self._settings["shader_cache"] == "Disabled":
-            self._notes.append("🔴 **Shader cache should be enabled**")
+            self._notes.add("🔴 **Shader cache should be enabled**")
 
         if self._settings["expand_ram"] == "True":
-            self._notes.append(
+            self._notes.add(
                 "⚠️ `Use alternative memory layout` should only be enabled for 4K mods"
             )
 
         if self._settings["memory_manager"] == "SoftwarePageTable":
-            self._notes.append(
+            self._notes.add(
                 "🔴 **`Software` setting in Memory Manager Mode will give slower performance than the default setting of `Host unchecked`**"
             )
 
         if self._settings["ignore_missing_services"] == "True":
-            self._notes.append(
+            self._notes.add(
                 "⚠️ `Ignore Missing Services` being enabled can cause instability"
             )
 
         if self._settings["vsync"] == "Disabled":
-            self._notes.append(
+            self._notes.add(
                 "⚠️ V-Sync disabled can cause instability like games running faster than intended or longer load times"
             )
 
         if self._settings["fs_integrity"] == "Disabled":
-            self._notes.append(
+            self._notes.add(
                 "⚠️ Disabling file integrity checks may cause corrupted dumps to not be detected"
             )
 
         if self._settings["backend_threading"] == "Off":
-            self._notes.append(
+            self._notes.add(
                 "🔴 **Graphics Backend Multithreading should be set to `Auto`**"
             )
 
@@ -507,37 +507,37 @@ class LogAnalyser:
         for common_error in self.get_common_errors():
             match common_error:
                 case CommonError.SHADER_CACHE_COLLISION:
-                    self._notes.append(
+                    self._notes.add(
                         "⚠️ Cache collision detected. Investigate possible shader cache issues"
                     )
                 case CommonError.SHADER_CACHE_CORRUPTION:
-                    self._notes.append(
+                    self._notes.add(
                         "⚠️ Cache corruption detected. Investigate possible shader cache issues"
                     )
                 case CommonError.DUMP_HASH:
-                    self._notes.append(
+                    self._notes.add(
                         "⚠️ Dump error detected. Investigate possible bad game/firmware dump issues"
                     )
                 case CommonError.UPDATE_KEYS:
-                    self._notes.append(
+                    self._notes.add(
                         "⚠️ Keys or firmware out of date, consider updating them"
                     )
                 case CommonError.FILE_PERMISSIONS:
-                    self._notes.append(
+                    self._notes.add(
                         "⚠️ File permission error. Consider deleting save directory and allowing Ryujinx to make a new one"
                     )
                 case CommonError.FILE_NOT_FOUND:
-                    self._notes.append(
-                        "⚠️ Save not found error. Consider starting game without a save file or using a new save file⚠️ Save not found error. Consider starting game without a save file or using a new save file"
+                    self._notes.add(
+                        "⚠️ Save not found error. Consider starting game without a save file or using a new save file"
                     )
                 case CommonError.MISSING_SERVICES:
                     if self._settings["ignore_missing_services"] == "False":
-                        self._notes.append(
+                        self._notes.add(
                             "⚠️ Consider enabling `Ignore Missing Services` in Ryujinx settings"
                         )
                 case CommonError.VULKAN_OUT_OF_MEMORY:
                     if self._settings["texture_recompression"] == "Disabled":
-                        self._notes.append(
+                        self._notes.add(
                             "⚠️ Consider enabling `Texture Recompression` in Ryujinx settings"
                         )
                 case _:
@@ -547,10 +547,10 @@ class LogAnalyser:
         latest_timestamp = re.findall(timestamp_regex, self._log_text)[-1]
         if latest_timestamp:
             timestamp_message = f"ℹ️ Time elapsed: `{latest_timestamp}`"
-            self._notes.append(timestamp_message)
+            self._notes.add(timestamp_message)
 
         if self.is_default_user_profile():
-            self._notes.append(
+            self._notes.add(
                 "⚠️ Default user profile in use, consider creating a custom one."
             )
 
@@ -562,11 +562,11 @@ class LogAnalyser:
             and self._game_info["game_name"] != "Unknown"
         ):
             firmware_warning = f"**❌ Nintendo Switch firmware not found**"
-            self._notes.append(firmware_warning)
+            self._notes.add(firmware_warning)
 
         self.__get_settings_notes()
         if self.get_ryujinx_version() == RyujinxVersion.CUSTOM:
-            self._notes.append("**⚠️ Custom builds are not officially supported**")
+            self._notes.add("**⚠️ Custom builds are not officially supported**")
 
     def get_ryujinx_version(self):
         mainline_version = re.compile(r"^\d\.\d\.\d+$")
@@ -655,7 +655,7 @@ class LogAnalyser:
             self._game_info["cheats"] = "\n".join(limit_cheats)
 
         if is_channel_allowed and self.get_ryujinx_version() == RyujinxVersion.PR:
-            self._notes.append(
+            self._notes.add(
                 f"**⚠️ PR build logs should be posted in <#{pr_channel}> if reporting bugs or tests**"
             )
 
