@@ -142,7 +142,7 @@ async def on_command(ctx):
 async def on_error(event: str, *args, **kwargs):
     log.exception(f"Error on {event}:")
 
-    exception = sys.exception()
+    exception = sys.exc_info()[1]
     is_report_allowed = any(
         [
             not isinstance(exception, x)
