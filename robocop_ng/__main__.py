@@ -19,8 +19,6 @@ sys.path.append(state_dir)
 
 import config
 
-# TODO: check __name__ for __main__ nerd
-
 script_name = os.path.basename(__file__).split(".")[0]
 
 log_file_name = f"{script_name}.log"
@@ -60,6 +58,9 @@ wanted_jsons = [
     "data/persistent_roles.json",
     "data/disabled_ids.json",
 ]
+
+if not os.path.exists(os.path.join(state_dir, "data")):
+    os.makedirs(os.path.join(state_dir, "data"))
 
 for wanted_json_idx in range(len(wanted_jsons)):
     wanted_jsons[wanted_json_idx] = os.path.join(
@@ -142,7 +143,7 @@ async def on_command(ctx):
 async def on_error(event: str, *args, **kwargs):
     log.exception(f"Error on {event}:")
 
-    exception = sys.exception()
+    exception = sys.exc_info()[1]
     is_report_allowed = any(
         [
             not isinstance(exception, x)
@@ -268,15 +269,6 @@ async def on_message(message):
 
     ctx = await bot.get_context(message)
     await bot.invoke(ctx)
-
-
-if not os.path.exists("data"):
-    os.makedirs("data")
-
-for wanted_json in wanted_jsons:
-    if not os.path.exists(wanted_json):
-        with open(wanted_json, "w") as f:
-            f.write("{}")
 
 
 async def main():
