@@ -22,6 +22,17 @@
             poetry2nix.mkPoetryApplication rec {
               projectDir = self;
               src = projectDir;
+              overrides = [ poetry2nix.defaultPoetryOverrides (self: super: {
+                cryptography = super.cryptography.overridePythonAttrs (old: {
+                  cargoDeps = pkgs.rustPlatform.fetchCargoTarball {
+                    src = old.src;
+                    sourceRoot = "${old.pname}-${old.version}/src/rust";
+                    name = "${old.pname}-${old.version}";
+                    # cryptography-42.0.5
+                    sha256 = "sha256-Pw3ftpcDMfZr/w6US5fnnyPVsFSB9+BuIKazDocYjTU=";
+                  };
+                });
+              }) ];
             };
         };
     in flake-utils.lib.eachDefaultSystem (system:
