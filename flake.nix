@@ -19,7 +19,10 @@
           poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
         in {
           ryuko-ng = with final;
-            poetry2nix.mkPoetryApplication rec { projectDir = self; };
+            poetry2nix.mkPoetryApplication rec {
+              projectDir = self;
+              src = projectDir;
+            };
         };
     in flake-utils.lib.eachDefaultSystem (system:
       let
