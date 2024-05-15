@@ -135,8 +135,8 @@ class LogAnalyser:
             raise ValueError("No log entries found.")
 
         self.__get_errors()
-        self.__get_settings_info()
         self.__get_hardware_info()
+        self.__get_settings_info()
         self.__get_ryujinx_info()
         self.__get_app_name()
         self.__get_mods()
@@ -173,6 +173,7 @@ class LogAnalyser:
             "pptc": "Unknown",
             "shader_cache": "Unknown",
             "vsync": "Unknown",
+            "hypervisor": "Unknown",
             "resolution_scale": "Unknown",
             "anisotropic_filtering": "Unknown",
             "aspect_ratio": "Unknown",
@@ -341,6 +342,11 @@ class LogAnalyser:
             case "pptc" | "shader_cache" | "texture_recompression" | "vsync":
                 return "Enabled" if value == "True" else "Disabled"
 
+            case "hypervisor":
+                if "mac" in self._hardware_info["os"]:
+                    return "Enabled" if value == "True" else "Disabled"
+                else:
+                    return "N/A"
             case _:
                 return value
 
@@ -361,6 +367,7 @@ class LogAnalyser:
             "shader_cache": "EnableShaderCache",
             "texture_recompression": "EnableTextureRecompression",
             "vsync": "EnableVsync",
+            "hypervisor": "UseHypervisor",
         }
 
         for key in self._settings.keys():
