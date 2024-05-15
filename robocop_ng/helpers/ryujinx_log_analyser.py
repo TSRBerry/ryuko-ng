@@ -377,13 +377,19 @@ class LogAnalyser:
                 raise NotImplementedError(key)
 
     def __get_mods(self):
-        mods_regex = re.compile(r"Found mod\s\'(.+?)\'\s(\[.+?\])")
+        mods_regex = re.compile(
+            r"Found\s(enabled|disabled)?\s?mod\s\'(.+?)\'\s(\[.+?\])"
+        )
         matches = re.findall(mods_regex, self._log_text)
         if matches:
-            mods = [{"mod": match[0], "status": match[1]} for match in matches]
+            mods = [
+                {"mod": match[1], "status": match[0], "type": match[2]}
+                for match in matches
+            ]
             mods_status = [
-                f"ℹ️ {i['mod']} ({'ExeFS' if i['status'] == '[E]' else 'RomFS'})"
+                f"ℹ️ {i['mod']} ({'ExeFS' if i['type'] == '[E]' else 'RomFS'})"
                 for i in mods
+                if i["status"] == "" or i["status"] == "enabled"
             ]
             # Remove duplicated mods from output
             mods_status = list(dict.fromkeys(mods_status))
