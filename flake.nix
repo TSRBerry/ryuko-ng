@@ -28,8 +28,8 @@
                     src = old.src;
                     sourceRoot = "${old.pname}-${old.version}/src/rust";
                     name = "${old.pname}-${old.version}";
-                    # cryptography-42.0.5
-                    sha256 = "sha256-Pw3ftpcDMfZr/w6US5fnnyPVsFSB9+BuIKazDocYjTU=";
+                    # cryptography-42.0.7
+                    sha256 = "sha256-wAup/0sI8gYVsxr/vtcA+tNkBT8wxmp68FPbOuro1E4=";
                   };
                 });
               }) ];
