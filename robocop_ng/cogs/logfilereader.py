@@ -534,14 +534,25 @@ class LogFileReader(Cog):
         ]
     )
     async def list_disabled_paths(self, ctx: Context):
+        messages = []
         disabled_paths = get_disabled_paths(self.bot)
 
         message = (
             "**Blocking analysis of logs containing the following content in paths:**\n"
         )
         for entry in disabled_paths:
-            message += f"- `{entry}`\n"
-        return await ctx.send(message)
+            if len(message) >= 1500:
+                messages.append(message)
+                message = f"- `{entry}`\n"
+            else:
+                message += f"- `{entry}`\n"
+
+        if message not in messages:
+            # Add the last message as well
+            messages.append(message)
+
+        for msg in messages:
+            await ctx.send(msg)
 
     async def analyse_log_message(self, message: Message, attachment_index=0):
         author_id = message.author.id
