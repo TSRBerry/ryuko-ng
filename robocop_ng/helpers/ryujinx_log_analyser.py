@@ -710,6 +710,7 @@ class LogAnalyser:
             "errors": self._log_errors,
             "settings": self._settings,
             "app_info": self.get_app_info(self._log_text),
+            "paths": self.get_filepaths(self._log_text),
         }
 
 
