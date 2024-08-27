@@ -21,7 +21,10 @@ def set_disabled_paths(bot, contents: list[str]):
 
 
 def is_path_disabled(bot, path: str) -> bool:
-    return path.strip().lower() in get_disabled_paths(bot)
+    for disabled_path in get_disabled_paths(bot):
+        if disabled_path in path.strip().lower():
+            return True
+    return False
 
 
 def add_disabled_path(bot, disabled_path: str) -> bool:
