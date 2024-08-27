@@ -514,8 +514,6 @@ class LogFileReader(Cog):
         aliases=[
             "allow_path",
             "unblock_path",
-            "unblock_path",
-            "allow_path",
             "unblockpath",
         ]
     )
