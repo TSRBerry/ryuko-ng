@@ -1,5 +1,6 @@
 import logging
 import re
+from typing import Optional
 
 import aiohttp
 from discord import Colour, Embed, Message, Attachment
@@ -98,14 +99,14 @@ class LogFileReader(Cog):
                 return True
         return is_ro_section_disabled(self.bot, main_ro_section)
 
-    def contains_blocked_paths(self, log_file: str) -> bool:
+    def contains_blocked_paths(self, log_file: str) -> Optional[str]:
         filepaths = LogAnalyser.get_filepaths(log_file)
         if filepaths is None:
-            return False
+            return None
         for filepath in filepaths:
             if is_path_disabled(self.bot, filepath):
-                return True
-        return False
+                return filepath
+        return None
 
     async def blocked_game_action(self, message: Message) -> Embed:
         warn_command = self.bot.get_command("warn")
@@ -137,7 +138,7 @@ class LogFileReader(Cog):
         await message.delete()
         return embed
 
-    async def blocked_path_action(self, message: Message) -> Embed:
+    async def blocked_path_action(self, message: Message, blocked_path: str) -> Embed:
         warn_command = self.bot.get_command("warn")
         if warn_command is not None:
             warn_message = await message.reply(
@@ -147,7 +148,7 @@ class LogFileReader(Cog):
             await warn_context.invoke(
                 warn_command,
                 target=None,
-                reason="This log contains blocked content in paths.",
+                reason=f"This log contains blocked content in paths: '{blocked_path}'",
             )
         else:
             logging.error(
@@ -289,8 +290,9 @@ class LogFileReader(Cog):
 
         if self.is_game_blocked(log_file):
             return await self.blocked_game_action(message)
-        elif self.contains_blocked_paths(log_file):
-            return await self.blocked_path_action(message)
+        blocked_path = self.contains_blocked_paths(log_file)
+        if blocked_path:
+            return await self.blocked_path_action(message, blocked_path)
 
         for role in message.author.roles:
             if role.id in self.disallowed_roles:
@@ -668,9 +670,10 @@ class LogFileReader(Cog):
                         return await message.channel.send(
                             content=None, embed=await self.blocked_game_action(message)
                         )
-                    elif self.contains_blocked_paths(log_file):
+                    blocked_path = self.contains_blocked_paths(log_file)
+                    if blocked_path:
                         return await message.channel.send(
-                            content=None, embed=await self.blocked_path_action(message)
+                            content=None, embed=await self.blocked_path_action(message, blocked_path)
                         )
             elif (
                 is_log_file
