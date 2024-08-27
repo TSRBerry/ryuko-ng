@@ -671,7 +671,8 @@ class LogFileReader(Cog):
                     blocked_path = self.contains_blocked_paths(log_file)
                     if blocked_path:
                         return await message.channel.send(
-                            content=None, embed=await self.blocked_path_action(message, blocked_path)
+                            content=None,
+                            embed=await self.blocked_path_action(message, blocked_path),
                         )
             elif (
                 is_log_file

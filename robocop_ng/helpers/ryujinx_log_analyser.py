@@ -43,7 +43,10 @@ class LogAnalyser:
 
     @staticmethod
     def get_filepaths(log_file: str) -> list[str]:
-        return [x.rstrip("\u0000") for x in re.findall(r"(?:[A-Za-z]:)?(?:[\\/]+[^\\/:\"\r\n]+)+", log_file)]
+        return [
+            x.rstrip("\u0000")
+            for x in re.findall(r"(?:[A-Za-z]:)?(?:[\\/]+[^\\/:\"\r\n]+)+", log_file)
+        ]
 
     @staticmethod
     def get_main_ro_section(log_file: str) -> Optional[dict[str, str]]:
