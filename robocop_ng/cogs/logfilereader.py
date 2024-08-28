@@ -132,7 +132,7 @@ class LogFileReader(Cog):
             title="⛔ Blocked game detected ⛔",
             colour=Colour(0xFF0000),
             description="This log contains a blocked game and has been removed.\n"
-                        "The user has been warned and the pirate role has been applied.",
+            "The user has been warned and the pirate role has been applied.",
         )
         embed.set_footer(text=f"Log uploaded by @{message.author.name}")
         await message.delete()
@@ -163,7 +163,7 @@ class LogFileReader(Cog):
             title="⛔ Blocked content in path detected ⛔",
             colour=Colour(0xFF0000),
             description="This log contains paths containing blocked content and has been removed.\n"
-                        "The user has been warned and the pirate role has been applied.",
+            "The user has been warned and the pirate role has been applied.",
         )
         embed.set_footer(text=f"Log uploaded by @{message.author.name}")
         await message.delete()
