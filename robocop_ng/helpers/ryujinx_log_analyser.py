@@ -42,6 +42,13 @@ class LogAnalyser:
         )
 
     @staticmethod
+    def get_filepaths(log_file: str) -> list[str]:
+        return [
+            x.rstrip("\u0000")
+            for x in re.findall(r"(?:[A-Za-z]:)?(?:[\\/]+[^\\/:\"\r\n]+)+", log_file)
+        ]
+
+    @staticmethod
     def get_main_ro_section(log_file: str) -> Optional[dict[str, str]]:
         ro_section_matches = re.findall(
             r"PrintRoSectionInfo: main:[\r\n]((?:\s+.*[\r\n])*)", log_file
@@ -711,6 +718,7 @@ class LogAnalyser:
             "errors": self._log_errors,
             "settings": self._settings,
             "app_info": self.get_app_info(self._log_text),
+            "paths": self.get_filepaths(self._log_text),
         }
 
 
