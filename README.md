@@ -1,3 +1,9 @@
+# Repository moved
+
+You can find the new repository here: https://codeberg.org/TSRBerry/ryuko-ng.git
+
+---
+
 # ryuko-ng
 
 Discord bot for handling Ryujinx moderation tasks and such, (n)ext-(g)en rewrite of Robocop 
