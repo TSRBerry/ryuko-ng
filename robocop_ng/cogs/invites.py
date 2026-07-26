@@ -30,10 +30,8 @@ class Invites(Cog):
         try:
             await ctx.author.send(f"Created single-use invite {invite.url}")
         except discord.errors.Forbidden:
-            await ctx.send(
-                f"{ctx.author.mention} I could not send you the \
-                             invite. Send me a DM so I can reply to you."
-            )
+            await ctx.send(f"{ctx.author.mention} I could not send you the \
+                             invite. Send me a DM so I can reply to you.")
 
 
 async def setup(bot):
