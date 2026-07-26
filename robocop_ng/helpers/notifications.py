@@ -3,7 +3,6 @@ from typing import Optional, Union
 
 from discord import Message, MessageReference, PartialMessage
 
-
 MessageReferenceTypes = Union[Message, MessageReference, PartialMessage]
 
 

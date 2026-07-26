@@ -67,7 +67,7 @@ class Pin(Cog):
             gh = gidgethub.aiohttp.GitHubAPI(
                 session, "RoboCop-NG", oauth_token=self.bot.config.github_oauth_token
             )
-            (id, content) = await self.get_pinboard(gh, channel)
+            id, content = await self.get_pinboard(gh, channel)
             content += "- " + data + "\n"
 
             await gh.patch(
